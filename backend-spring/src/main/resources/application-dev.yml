@@ -1,0 +1,22 @@
+# Development profile — applied with SPRING_PROFILES_ACTIVE=dev
+# (or as the default when SPRING_PROFILES_ACTIVE is not set).
+spring:
+  devtools:
+    restart:
+      enabled: true
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  seed:
+    enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html

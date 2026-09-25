@@ -1,0 +1,35 @@
+# Test profile: runs the suite against a dedicated, throwaway database so the
+# shared development database is never polluted by integration tests.
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:innovasphere_test}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  devtools:
+    restart:
+      enabled: false
+
+app:
+  jwt:
+    secret: aW5ub3Zhc3BoZXJlLXRlc3Qtc2VjcmV0LWtleS0wMDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3OA==
+    expiration-ms: 3600000
+  seed:
+    enabled: false
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: OFF

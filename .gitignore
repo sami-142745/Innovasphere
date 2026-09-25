@@ -1,0 +1,65 @@
+# Root .gitignore for Innovasphere v1.0
+# ===================================================================
+
+# --- Build artifacts ---
+/dist/
+/build/
+/target/
+/out/
+
+# --- Dependencies ---
+/node_modules/
+/backend-spring/.mvn/wrapper/maven-wrapper.jar
+!/backend-spring/.mvn/wrapper/maven-wrapper.properties
+
+# --- IDE / Editor ---
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+vite-dev.log
+
+# --- Test coverage ---
+/coverage/
+/backend-spring/target/site/jacoco/
+
+# --- Environment ---
+.env
+.env.*
+!.env.example
+
+# --- Docker ---
+.docker/
+
+# --- Misc ---
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.tgz
+
+# --- Local config ---
+local.properties
+.settings/
+.project
+.classpath
+
+# --- Cache ---
+.eslintcache
+.prettiercache
+*.tsbuildinfo

@@ -1,0 +1,51 @@
+# Innovasphere Backend — Render (Blueprint) configuration.
+#
+# Required Render environment variables (set in the Render dashboard):
+#   DB_HOST        Database host (e.g. from a Render PostgreSQL/MySQL instance)
+#   DB_PORT        Database port (default 3306)
+#   DB_NAME        Database name
+#   DB_USERNAME    Database user
+#   DB_PASSWORD    Database password (secret)
+#   JWT_SECRET     Strong base64 secret >= 32 bytes (secret) — openssl rand -base64 48
+#   JWT_EXPIRATION Token lifetime in ms (default 604800000)
+#   FRONTEND_URL   CORS origin, e.g. https://innovasphere.vercel.app
+#   PORT           Render injects this automatically
+#   SPRING_PROFILES_ACTIVE=prod
+
+services:
+  - type: web
+    name: innovasphere-backend
+    runtime: java
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    buildCommand: ./mvnw -B -DskipTests package
+    startCommand: java -jar target/innovasphere-backend-0.1.0-SNAPSHOT.jar
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRATION
+        value: "604800000"
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: PORT
+        value: "8080"
+        sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+        sync: false
+      - key: JAVA_VERSION
+        value: "21"
+        sync: false
