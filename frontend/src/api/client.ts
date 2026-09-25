@@ -1,13 +1,15 @@
-import axios, { AxiosError, type AxiosInstance } from 'axios';
-import type { ApiErrorResponse } from '../types';
-import { AUTH_STORAGE_KEY } from '../utils/constants';
+import axios, { AxiosError, type AxiosInstance } from "axios";
+import type { ApiErrorResponse } from "../types";
+import { AUTH_STORAGE_KEY } from "../utils/constants";
 
 const API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  'http://localhost:8080';
+  "http://localhost:8080";
 
-export const TOKEN_KEY = 'innovasphere.token';
+console.log("[API] Base URL:", API_URL);
+
+export const TOKEN_KEY = "innovasphere.token";
 
 let unauthorizedHandler: (() => void) | null = null;
 
@@ -23,7 +25,7 @@ function readToken(): string | null {
       if (parsed.token) return parsed.token;
     }
   } catch {
-    // ignore malformed storage
+    // Ignore malformed localStorage
   }
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -35,8 +37,11 @@ function clearAuth(): void {
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 20000
+  timeout: 60000,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
 api.interceptors.request.use((config) => {
@@ -44,27 +49,79 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  console.log("[API] Request:", config.method?.toUpperCase(), config.url);
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log("[API] Response:", response.status, response.config.url);
+    return response;
+  },
   (error: AxiosError<ApiErrorResponse>) => {
-    if (error.response?.status === 401) {
-      clearAuth();
-      unauthorizedHandler?.();
+    if (error.response) {
+      // Server responded with error status
+      const status = error.response.status;
+      const url = error.config?.url ?? "unknown";
+
+      console.error("[API] HTTP Error:", status, url);
+
+      if (status === 401) {
+        clearAuth();
+        unauthorizedHandler?.();
+      }
+
+      // Enhance error with status for better UX
+      const enhancedError = error as AxiosError<ApiErrorResponse> & { status: number };
+      enhancedError.status = status;
+    } else if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      console.error("[API] Timeout:", error.config?.url);
+      const timeoutError = error as AxiosError<ApiErrorResponse> & { isTimeout: boolean; status: number };
+      timeoutError.isTimeout = true;
+      timeoutError.status = 408;
+    } else if (error.message === "Network Error" || !error.response) {
+      console.error("[API] Network Error:", error.config?.url);
+      const networkError = error as AxiosError<ApiErrorResponse> & { isNetworkError: boolean; status: number };
+      networkError.isNetworkError = true;
+      networkError.status = 0;
     }
+
     return Promise.reject(error);
   }
 );
 
-export function extractApiError(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
+export function extractApiError(
+  error: unknown,
+  fallback = "Something went wrong. Please try again."
+): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data;
+    const status = (error as AxiosError<ApiErrorResponse> & { status?: number }).status ?? error.response?.status;
+
     if (data?.message) return data.message;
     if (data?.error) return data.error;
+
+    // Custom messages based on error type
+    if ((error as AxiosError<ApiErrorResponse> & { isTimeout?: boolean }).isTimeout) {
+      return "Request timed out. The server may be starting up. Please try again in a moment.";
+    }
+    if ((error as AxiosError<ApiErrorResponse> & { isNetworkError?: boolean }).isNetworkError) {
+      return "Cannot connect to the server. Please check your internet connection or try again later.";
+    }
+
+    if (status === 401) return "Your session has expired. Please log in again.";
+    if (status === 403) return "You don't have permission to access this resource.";
+    if (status === 404) return "The requested resource was not found.";
+    if (status === 500) return "Server error. Please try again later.";
+    if (status === 408) return "Request timed out. Please try again.";
+
     if (error.message) return error.message;
   }
-  if (error instanceof Error && error.message) return error.message;
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
   return fallback;
 }
