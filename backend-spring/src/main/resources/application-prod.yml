@@ -10,13 +10,12 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-      pool-name: InnovasphereHikariPool
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
     open-in-view: false
+    show-sql: false
     database-platform: org.hibernate.dialect.MySQLDialect
 
 server:
@@ -28,8 +27,7 @@ app:
     expiration-ms: ${JWT_EXPIRATION:604800000}
 
   cors:
-    # THIS matches Render variable
-    allowed-origins: ${CORS_ORIGIN}
+    allowed-origins: ${CORS_ORIGIN:http://localhost:5173}
 
   seed:
     enabled: false
