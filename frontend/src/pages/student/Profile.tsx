@@ -152,13 +152,13 @@ export default function Profile() {
                       <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{p.title}</p>
                       <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                         <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        <span className="truncate">{p.shortDescription || p.description}</span>
+                        <span className="truncate">{p.shortDescription ?? ''}</span>
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
                       <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                         <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                        {p.memberCount}
+                        {p.memberCount ?? 0}
                       </span>
                       <Badge tone={STATUS_TONES[p.status]}>{projectStatusLabel(p.status)}</Badge>
                     </div>

@@ -17,6 +17,48 @@ type ProjectCacheEntry = {
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const cache = new Map<string, ProjectCacheEntry>();
+const SESSION_STORAGE_PREFIX = 'innovasphere_cache_';
+
+function getSessionStorageKey(query: ProjectSearchQuery): string {
+  return SESSION_STORAGE_PREFIX + JSON.stringify({
+    page: query.page ?? 0,
+    size: query.size ?? 9,
+    sort: query.sort ?? 'createdAt,desc',
+    keyword: query.keyword ?? '',
+    domain: query.domain ?? '',
+    skill: query.skill ?? '',
+    status: query.status ?? '',
+  });
+}
+
+function loadFromSessionStorage(query: ProjectSearchQuery): Page<ProjectSummaryDto> | null {
+  try {
+    const key = getSessionStorageKey(query);
+    const stored = sessionStorage.getItem(key);
+    if (!stored) return null;
+    const entry: ProjectCacheEntry = JSON.parse(stored);
+    const isExpired = Date.now() - entry.timestamp > CACHE_DURATION;
+    if (isExpired) {
+      sessionStorage.removeItem(key);
+      return null;
+    }
+    return entry.data;
+  } catch {
+    return null;
+  }
+}
+
+function saveToSessionStorage(query: ProjectSearchQuery, data: Page<ProjectSummaryDto>): void {
+  try {
+    const key = getSessionStorageKey(query);
+    sessionStorage.setItem(key, JSON.stringify({
+      timestamp: Date.now(),
+      data,
+    }));
+  } catch {
+    // Ignore storage errors (e.g., quota exceeded)
+  }
+}
 
 export function getCacheKey(query: ProjectSearchQuery): string {
   return JSON.stringify({
@@ -31,17 +73,20 @@ export function getCacheKey(query: ProjectSearchQuery): string {
 }
 
 export function getProjectCache(query: ProjectSearchQuery): Page<ProjectSummaryDto> | null {
+  // First check memory cache
   const key = getCacheKey(query);
   const cached = cache.get(key);
-  if (!cached) return null;
-
-  const isExpired = Date.now() - cached.timestamp > 5 * 60 * 1000;
-  if (isExpired) {
-    cache.delete(key);
-    return null;
+  if (cached) {
+    const isExpired = Date.now() - cached.timestamp > CACHE_DURATION;
+    if (isExpired) {
+      cache.delete(key);
+    } else {
+      return cached.data;
+    }
   }
 
-  return cached.data;
+  // Fallback to sessionStorage for instant loading
+  return loadFromSessionStorage(query);
 }
 
 export function setProjectCache(query: ProjectSearchQuery, data: Page<ProjectSummaryDto>): void {
@@ -50,10 +95,22 @@ export function setProjectCache(query: ProjectSearchQuery, data: Page<ProjectSum
     timestamp: Date.now(),
     data,
   });
+  // Also persist to sessionStorage for instant reload
+  saveToSessionStorage(query, data);
 }
 
 export function clearProjectCache(): void {
   cache.clear();
+  // Clear sessionStorage entries
+  try {
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith(SESSION_STORAGE_PREFIX)) {
+        sessionStorage.removeItem(key);
+      }
+    });
+  } catch {
+    // Ignore
+  }
 }
 
 export function getCacheKeys(): string[] {

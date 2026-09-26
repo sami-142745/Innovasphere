@@ -1,13 +1,18 @@
 import { cn } from '../../utils/cn';
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('shimmer rounded-lg', className)} aria-hidden="true" />;
+  return (
+    <div className={cn('shimmer-animate rounded-lg', className)} aria-hidden="true">
+      <div className="absolute inset-0 -translate-x-full animate-shimmer" aria-hidden="true" />
+    </div>
+  );
 }
 
 export function CardSkeleton() {
   return (
-    <div className="glass rounded-panel p-5">
-      <div className="flex items-center gap-3">
+    <div className="glass rounded-panel p-5 relative overflow-hidden">
+      <div className="absolute inset-0 -translate-x-full animate-shimmer" aria-hidden="true" />
+      <div className="flex items-center gap-3 relative z-10">
         <Skeleton className="h-10 w-10 rounded-full" />
         <div className="flex-1 space-y-2">
           <Skeleton className="h-3 w-2/3" />

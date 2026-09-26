@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Filter, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FilterChips } from '../../components/shared/FilterChips';
@@ -11,7 +11,7 @@ import { projectService } from '../../services/projects';
 import { extractApiError } from '../../api/client';
 import type { Page, ProjectStatus, ProjectSummaryDto } from '../../types';
 import { DEFAULT_PAGE_SIZE, PROJECT_SORT_OPTIONS, PROJECT_STATUSES } from '../../utils/constants';
-import { getProjectCache, setProjectCache, getCacheKey } from '../../utils/projectCache';
+import { getProjectCache, setProjectCache } from '../../utils/projectCache';
 
 const STATUS_OPTIONS = [{ value: '', label: 'All' }, ...PROJECT_STATUSES];
 const SORT_OPTIONS = PROJECT_SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }));
@@ -34,6 +34,7 @@ export default function Directory() {
   const [error, setError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const resetPage = () => {
     if (page && page !== '0') setPage('0');
@@ -54,54 +55,121 @@ export default function Directory() {
     resetPage();
   };
 
+  const handleDomainChange = (value: string) => {
+    setDomain(value);
+    resetPage();
+  };
+
+  const handleSkillChange = (value: string) => {
+    setSkill(value);
+    resetPage();
+  };
+
   const reload = () => {
     requestIdRef.current += 1;
   };
 
-  // Build the current query object
-  const query = {
+  const hasFilters = useMemo(() => 
+    debouncedKeyword || domain.trim() || skill.trim() || status, 
+    [debouncedKeyword, domain, skill, status]
+  );
+
+  const listQuery = useMemo(() => ({
+    page: pageNumber,
+    size: DEFAULT_PAGE_SIZE,
+    sort,
+    status: status as ProjectStatus | undefined,
+  }), [pageNumber, sort, status]);
+
+  const searchQuery = useMemo(() => ({
     page: pageNumber,
     size: DEFAULT_PAGE_SIZE,
     sort,
     keyword: debouncedKeyword || undefined,
     domain: domain.trim() || undefined,
     skill: skill.trim() || undefined,
-    status: (status || undefined) as ProjectStatus | undefined,
-  };
+    status: status as ProjectStatus | undefined,
+  }), [pageNumber, debouncedKeyword, domain, skill, status, sort]);
 
-  // Load cached data immediately on mount or when query changes
+  const currentQuery = hasFilters ? searchQuery : listQuery;
+
   useEffect(() => {
-    const cached = getProjectCache(query);
-    
-    if (cached) {
-      setProjects(cached.content ?? []);
-      setTotalElements(cached.totalElements ?? 0);
-      setTotalPages(cached.totalPages ?? 0);
-      setLoading(false);
-    }
-  }, [pageNumber, debouncedKeyword, domain, skill, status, sort]);
+    const cached = getProjectCache(currentQuery);
 
-  // Prefetch neighbor pages for instant pagination
+    if (!cached) return;
+
+    setProjects(cached.content ?? []);
+    setTotalPages(cached.totalPages ?? 0);
+    setTotalElements(cached.totalElements ?? 0);
+    setLoading(false);
+  }, [currentQuery]);
+
+  useEffect(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    let mounted = true;
+    const requestId = ++requestIdRef.current;
+
+    async function fetchProjects() {
+      if (projects.length === 0) {
+        setLoading(true);
+      }
+
+      setError(null);
+
+      try {
+        const isSearch = hasFilters;
+        const response = isSearch
+          ? await projectService.search(currentQuery, abortController.signal)
+          : await projectService.list(listQuery, abortController.signal);
+
+        if (!mounted) return;
+        if (requestId !== requestIdRef.current) return;
+
+        setProjectCache(currentQuery, response);
+
+        setProjects(response.content ?? []);
+        setTotalPages(response.totalPages ?? 0);
+        setTotalElements(response.totalElements ?? 0);
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        if (!mounted) return;
+        if (requestId !== requestIdRef.current) return;
+
+        setError(extractApiError(err));
+      } finally {
+        if (mounted && requestId === requestIdRef.current) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchProjects();
+
+    return () => {
+      mounted = false;
+      abortControllerRef.current?.abort();
+    };
+  }, [currentQuery, hasFilters, listQuery]);
+
   useEffect(() => {
     if (loading) return;
-    
+    if (projects.length === 0) return;
+
     const nextPage = pageNumber + 1;
     const prevPage = pageNumber - 1;
 
-    const baseQuery = {
-      page: pageNumber,
-      size: DEFAULT_PAGE_SIZE,
-      sort,
-      keyword: debouncedKeyword || undefined,
-      domain: domain.trim() || undefined,
-      skill: skill.trim() || undefined,
-      status: (status || undefined) as ProjectStatus | undefined,
-    };
+    const baseQuery = { ...currentQuery };
 
     if (nextPage < totalPages) {
       const nextQuery = { ...baseQuery, page: nextPage };
       if (!getProjectCache(nextQuery)) {
-        projectService.search(nextQuery)
+        const isSearch = hasFilters;
+        (isSearch ? projectService.search(nextQuery) : projectService.list({ ...listQuery, page: nextPage }))
           .then(data => setProjectCache(nextQuery, data))
           .catch(() => {});
       }
@@ -110,64 +178,13 @@ export default function Directory() {
     if (prevPage >= 0) {
       const prevQuery = { ...baseQuery, page: prevPage };
       if (!getProjectCache(prevQuery)) {
-        projectService.search(prevQuery)
+        const isSearch = hasFilters;
+        (isSearch ? projectService.search(prevQuery) : projectService.list({ ...listQuery, page: prevPage }))
           .then(data => setProjectCache(prevQuery, data))
           .catch(() => {});
       }
     }
-  }, [loading, pageNumber, totalPages, debouncedKeyword, domain, skill, status, sort]);
-
-  useEffect(() => {
-    const currentRequestId = ++requestIdRef.current;
-
-    let mounted = true;
-
-    async function loadProjects() {
-      const currentQuery = {
-        page: pageNumber,
-        size: DEFAULT_PAGE_SIZE,
-        sort,
-        keyword: debouncedKeyword || undefined,
-        domain: domain.trim() || undefined,
-        skill: skill.trim() || undefined,
-        status: (status || undefined) as ProjectStatus | undefined,
-      };
-
-      const hasData = projects.length > 0;
-      if (!hasData) {
-        setLoading(true);
-      }
-      setError(null);
-
-      try {
-        const data = await projectService.search(currentQuery);
-
-        if (!mounted) return;
-        if (currentRequestId !== requestIdRef.current) return;
-
-        setProjects(data.content ?? []);
-        setTotalElements(data.totalElements ?? 0);
-        setTotalPages(data.totalPages ?? 0);
-
-        // Update cache
-        setProjectCache(currentQuery, data);
-      } catch (err) {
-        if (!mounted) return;
-        if (currentRequestId !== requestIdRef.current) return;
-        setError(extractApiError(err));
-      } finally {
-        if (mounted && currentRequestId === requestIdRef.current) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadProjects();
-
-    return () => {
-      mounted = false;
-    };
-  }, [pageNumber, debouncedKeyword, domain, skill, status, sort]);
+  }, [currentQuery, totalPages, loading, projects.length, hasFilters, listQuery]);
 
   useEffect(() => {
     if (totalPages > 0 && pageNumber >= totalPages) {
@@ -181,7 +198,6 @@ export default function Directory() {
         <div className="blob blob-purple h-full w-full opacity-30" />
       </div>
 
-      {/* Hero */}
       <div className="relative mb-8">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200/70 bg-brand-50/70 px-3 py-1 text-xs font-medium text-brand-700 dark:border-brand-400/20 dark:bg-brand-500/10 dark:text-brand-300">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Research marketplace
@@ -194,7 +210,6 @@ export default function Directory() {
         </p>
       </div>
 
-      {/* Filter panel */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -215,19 +230,13 @@ export default function Directory() {
             aria-label="Filter by domain"
             placeholder="Domain"
             value={domain}
-            onChange={(e) => {
-              setDomain(e.target.value);
-              resetPage();
-            }}
+            onChange={(e) => handleDomainChange(e.target.value)}
           />
           <Input
             aria-label="Filter by skill"
             placeholder="Skill"
             value={skill}
-            onChange={(e) => {
-              setSkill(e.target.value);
-              resetPage();
-            }}
+            onChange={(e) => handleSkillChange(e.target.value)}
           />
         </div>
 
@@ -239,7 +248,6 @@ export default function Directory() {
         </div>
       </motion.div>
 
-      {/* Results meta */}
       {!loading && !error && totalElements > 0 && (
         <p className="mb-4 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
@@ -248,7 +256,7 @@ export default function Directory() {
         </p>
       )}
 
-      {loading && <GridSkeleton count={6} />}
+      {loading && projects.length === 0 && <GridSkeleton count={6} />}
 
       {!loading && error && <ErrorState message={error} onRetry={reload} />}
 

@@ -29,7 +29,7 @@ export default function Edit() {
     return null;
   }
 
-  if (project.owner.id !== user?.id) {
+  if (project.owner?.id !== user?.id) {
     return <ForbiddenPage />;
   }
 

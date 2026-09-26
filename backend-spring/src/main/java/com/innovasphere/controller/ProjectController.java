@@ -7,6 +7,7 @@ import com.innovasphere.dto.ProjectUpdateRequest;
 import com.innovasphere.entity.User;
 import com.innovasphere.enums.ProjectStatus;
 import com.innovasphere.security.CurrentUserProvider;
+import com.innovasphere.service.PrefetchService;
 import com.innovasphere.service.ProjectService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -32,10 +33,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final PrefetchService prefetchService;
     private final CurrentUserProvider currentUserProvider;
 
-    public ProjectController(ProjectService projectService, CurrentUserProvider currentUserProvider) {
+    public ProjectController(ProjectService projectService, PrefetchService prefetchService, CurrentUserProvider currentUserProvider) {
         this.projectService = projectService;
+        this.prefetchService = prefetchService;
         this.currentUserProvider = currentUserProvider;
     }
 
@@ -48,9 +51,11 @@ public class ProjectController {
 
     @GetMapping
     public Page<ProjectSummaryDto> list(
-        @RequestParam(required = false) ProjectStatus status,
-        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return projectService.list(status, pageable);
+            @RequestParam(required = false) ProjectStatus status,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<ProjectSummaryDto> result = projectService.listSummary(status, pageable);
+        prefetchService.prefetchAdjacentPages(pageable.getPageNumber(), result.getTotalPages(), pageable, status, null, null, null, "createdAt,desc");
+        return result;
     }
 
     @GetMapping("/my")
@@ -62,12 +67,14 @@ public class ProjectController {
 
     @GetMapping("/search")
     public Page<ProjectSummaryDto> search(
-        @RequestParam(required = false) String keyword,
-        @RequestParam(required = false) ProjectStatus status,
-        @RequestParam(required = false) String domain,
-        @RequestParam(required = false) String skill,
-        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return projectService.search(keyword, status, domain, skill, pageable);
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) ProjectStatus status,
+            @RequestParam(required = false) String domain,
+            @RequestParam(required = false) String skill,
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<ProjectSummaryDto> result = projectService.search(keyword, status, domain, null, pageable);
+        prefetchService.prefetchAdjacentPages(pageable.getPageNumber(), result.getTotalPages(), pageable, status, keyword, domain, null, "createdAt,desc");
+        return result;
     }
 
     @GetMapping("/{id}")

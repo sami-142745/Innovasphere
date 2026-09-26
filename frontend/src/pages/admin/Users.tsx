@@ -46,6 +46,7 @@ export default function Users() {
   const contributors = useMemo<Contributor[]>(() => {
     const byId = new Map<string, Contributor>();
     for (const p of projects.data?.content ?? []) {
+      if (!p.owner) continue;
       const existing = byId.get(p.owner.id);
       if (existing) existing.projectCount += 1;
       else byId.set(p.owner.id, { user: p.owner, projectCount: 1 });
@@ -56,8 +57,8 @@ export default function Users() {
   const studentOwners = new Set<string>();
   const facultyOwners = new Set<string>();
   for (const p of projects.data?.content ?? []) {
-    if (p.owner.role === 'STUDENT') studentOwners.add(p.owner.id);
-    else if (p.owner.role === 'FACULTY') facultyOwners.add(p.owner.id);
+    if (p.owner?.role === 'STUDENT') studentOwners.add(p.owner.id);
+    else if (p.owner?.role === 'FACULTY') facultyOwners.add(p.owner.id);
   }
   const roleData: SeriesDatum[] = [];
   if (studentOwners.size > 0) roleData.push({ label: 'Student', value: studentOwners.size });

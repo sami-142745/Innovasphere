@@ -81,13 +81,16 @@ export interface ProjectSummaryDto {
   id: string;
   title: string;
   shortDescription?: string | null;
-  description: string;
+  description?: string | null;
   status: ProjectStatus;
-  owner: UserDto;
-  domains: ResearchDomainDto[];
-  skills: SkillDto[];
+  owner?: UserDto;
+  domain?: string | null;
+  domains?: ResearchDomainDto[];
+  skills?: SkillDto[];
+  mentorName?: string | null;
   teamSize: number;
-  memberCount: number;
+  maxTeamSize?: number;
+  memberCount?: number;
   createdAt: string;
 }
 

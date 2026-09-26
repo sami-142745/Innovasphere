@@ -18,7 +18,7 @@ export const ProjectCard = memo(function ProjectCard({ project, matchScore }: { 
       <div className={cn('relative h-24 overflow-hidden bg-gradient-to-br', coverGradient(project.id || project.title))}>
         <div className="absolute inset-0 bg-grid opacity-30" aria-hidden="true" />
         <div className="absolute -right-4 -top-6 h-24 w-24 rounded-full bg-white/15 blur-2xl transition-transform duration-500 group-hover:scale-150" aria-hidden="true" />
-        <Rocket className="absolute -bottom-2 -right-1 h-20 w-20 -rotate-12 text-white/20 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-0" aria-hidden="true" />
+        <div className="absolute -bottom-2 -right-1 h-20 w-20 -rotate-12 text-white/20 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-0" aria-hidden="true" />
         <div className="absolute left-4 top-4 flex gap-1.5">
           <Badge tone={tone} dot className="border-white/20 bg-white/15 text-white backdrop-blur-md dark:text-white">
             {projectStatusLabel(project.status)}
@@ -38,32 +38,29 @@ export const ProjectCard = memo(function ProjectCard({ project, matchScore }: { 
         </h3>
 
         <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-          {project.shortDescription?.trim() || project.description}
+          {project.shortDescription?.trim() || ''}
         </p>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {project.domains.slice(0, 3).map((d) => (
-            <Badge key={d.id} tone="brand">
-              {d.name}
+          {project.domain && (
+            <Badge key={project.domain} tone="brand">
+              {project.domain}
             </Badge>
-          ))}
-          {project.skills.slice(0, 4).map((s) => (
-            <Badge key={s.id}>{s.name}</Badge>
-          ))}
+          )}
         </div>
 
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-white/[0.06]">
           <div className="flex min-w-0 items-center gap-2.5">
-            <Avatar name={project.owner.fullName} size="sm" />
+            <Avatar name={project.mentorName || 'Mentor'} size="sm" />
             <div className="min-w-0 leading-tight">
-              <p className="truncate text-xs font-medium text-slate-700 dark:text-slate-300">{project.owner.fullName}</p>
+              <p className="truncate text-xs font-medium text-slate-700 dark:text-slate-300">{project.mentorName || 'Mentor'}</p>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">{formatDate(project.createdAt)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
               <Users className="h-3.5 w-3.5" aria-hidden="true" />
-              {project.memberCount}/{project.teamSize}
+              {project.teamSize}/{project.maxTeamSize}
             </span>
             <ArrowRight className="h-4 w-4 -translate-x-1 text-brand-500 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden="true" />
           </div>

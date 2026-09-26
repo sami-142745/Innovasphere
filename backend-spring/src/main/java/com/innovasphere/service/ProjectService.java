@@ -22,6 +22,8 @@ public interface ProjectService {
 
     Page<ProjectSummaryDto> list(ProjectStatus status, Pageable pageable);
 
+    Page<ProjectSummaryDto> listSummary(ProjectStatus status, Pageable pageable);
+
     Page<ProjectSummaryDto> search(String keyword, ProjectStatus status, String domain, String skill, Pageable pageable);
 
     Page<ProjectSummaryDto> my(UUID ownerId, Pageable pageable);

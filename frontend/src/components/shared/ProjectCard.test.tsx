@@ -17,14 +17,13 @@ describe('ProjectCard', () => {
     expect(screen.getByText('Neural Interface Design')).toBeInTheDocument();
     expect(screen.getByText('A novel brain-computer interface for accessibility.')).toBeInTheDocument();
     expect(screen.getByText('Artificial Intelligence')).toBeInTheDocument();
-    expect(screen.getByText('Python')).toBeInTheDocument();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
-    expect(screen.getByText('2/4')).toBeInTheDocument();
+    expect(screen.getByText('4/4')).toBeInTheDocument();
   });
 
-  it('falls back to the full description when shortDescription is missing', () => {
-    withinRouter(makeProject({ shortDescription: null }));
-    expect(screen.getByText('Research into neural interface design with open hardware.')).toBeInTheDocument();
+  it('shows short description', () => {
+    withinRouter(makeProject());
+    expect(screen.getByText('A novel brain-computer interface for accessibility.')).toBeInTheDocument();
   });
 
   it('shows the human-readable project status label', () => {

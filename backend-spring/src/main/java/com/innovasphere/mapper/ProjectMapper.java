@@ -25,17 +25,21 @@ public class ProjectMapper {
         if (project == null) {
             return null;
         }
+        String domain = project.getResearchDomains() != null && !project.getResearchDomains().isEmpty()
+            ? project.getResearchDomains().iterator().next().getName()
+            : null;
+        String mentorName = project.getOwner() != null
+            ? project.getOwner().getFirstName() + " " + project.getOwner().getLastName()
+            : null;
         return new ProjectSummaryDto(
             project.getId(),
             project.getTitle(),
             project.getShortDescription(),
-            project.getDescription(),
             project.getStatus(),
-            userMapper.toDto(project.getOwner()),
-            researchDomainMapper.toDtoSet(project.getResearchDomains()),
-            toSkillDtos(project.getSkills()),
+            domain,
+            mentorName,
             project.getTeams().size(),
-            project.getMembers().size(),
+            project.getTeamSize(),
             project.getCreatedAt()
         );
     }

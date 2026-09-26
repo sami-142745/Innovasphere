@@ -55,9 +55,12 @@ export function makeProject(overrides: Partial<ProjectSummaryDto> = {}): Project
       active: true,
       createdAt: '2026-01-10T09:00:00Z'
     },
+    domain: 'Artificial Intelligence',
     domains: [{ id: 'd1', name: 'Artificial Intelligence' }],
     skills: [{ id: 's1', name: 'Mathematics' }, { id: 's2', name: 'Python' }],
+    mentorName: 'Ada Lovelace',
     teamSize: 4,
+    maxTeamSize: 4,
     memberCount: 2,
     createdAt: '2026-02-01T10:30:00Z',
     ...overrides

@@ -23,6 +23,8 @@ import com.innovasphere.repository.SkillRepository;
 import com.innovasphere.repository.TeamRepository;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -69,6 +71,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"projects", "projectSearch"}, allEntries = true)
     public ProjectDto create(User user, ProjectCreateRequest request) {
         ProjectStatus status = request.status() != null ? request.status() : ProjectStatus.IDEA;
         Project project = Project.builder()
@@ -93,6 +96,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"projects", "projectSearch"}, allEntries = true)
     public ProjectDto update(User user, UUID projectId, ProjectUpdateRequest request) {
         Project project = requireProject(projectId);
         requireOwnerOrAdmin(user, project);
@@ -128,6 +132,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"projects", "projectSearch"}, allEntries = true)
     public void delete(User user, UUID projectId) {
         Project project = requireProject(projectId);
         requireOwnerOrAdmin(user, project);
@@ -156,10 +161,20 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "projects", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + (#status != null ? #status.name() : 'ALL') + '-' + #pageable.sort.toString()")
+    public Page<ProjectSummaryDto> listSummary(ProjectStatus status, Pageable pageable) {
+        if (status != null) {
+            return projectRepository.findSummaryByStatus(status, pageable);
+        }
+        return projectRepository.findAllSummary(pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = "projectSearch", key = "#keyword + '-' + (#status != null ? #status.name() : 'ALL') + '-' + (#domain != null ? #domain : 'ALL') + '-' + (#skill != null ? #skill : 'ALL') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<ProjectSummaryDto> search(String keyword, ProjectStatus status, String domain, String skill,
                                           Pageable pageable) {
-        return projectRepository.search(normalize(keyword), status, normalize(domain), normalize(skill), pageable)
-            .map(projectMapper::toSummary);
+        return projectRepository.searchSummary(normalize(keyword), status, normalize(domain), normalize(skill), pageable);
     }
 
     @Override

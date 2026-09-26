@@ -28,7 +28,7 @@ export function ProjectForm({ project, onSuccess }: { project?: ProjectDto; onSu
   const navigate = useNavigate();
   const isEdit = Boolean(project);
 
-  const isTeamOwner = project ? project.owner.id === user?.id : true;
+  const isTeamOwner = project ? project.owner?.id === user?.id : true;
 
   const schema = z
     .object({
@@ -74,8 +74,8 @@ export function ProjectForm({ project, onSuccess }: { project?: ProjectDto; onSu
         shortDescription: values.shortDescription || null,
         repositoryUrl: values.repositoryUrl || null,
         status: (values.status || 'IDEA') as ProjectStatus,
-        researchDomainIds: project?.domains.map((d) => d.id) ?? [],
-        skillIds: project?.skills.map((s) => s.id) ?? []
+        researchDomainIds: project?.domains?.map((d) => d.id) ?? [],
+        skillIds: project?.skills?.map((s) => s.id) ?? []
       };
       if (isEdit && project) {
         await projectService.update(project.id, payload);

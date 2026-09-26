@@ -3,6 +3,7 @@ package com.innovasphere.config;
 import com.innovasphere.security.CustomUserDetailsService;
 import com.innovasphere.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -29,13 +31,16 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
     private final RequestLoggingFilter requestLoggingFilter;
+    private final CacheControlFilter cacheControlFilter;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           CustomUserDetailsService userDetailsService,
-                          RequestLoggingFilter requestLoggingFilter) {
+                          RequestLoggingFilter requestLoggingFilter,
+                          CacheControlFilter cacheControlFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.requestLoggingFilter = requestLoggingFilter;
+        this.cacheControlFilter = cacheControlFilter;
     }
 
     @Bean
@@ -57,12 +62,19 @@ public class SecurityConfig {
     }
 
     @Bean
+    public ShallowEtagHeaderFilter shallowEtagHeaderFilter() {
+        return new ShallowEtagHeaderFilter();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(cacheControlFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(shallowEtagHeaderFilter(), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/healthz").permitAll()

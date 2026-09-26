@@ -28,7 +28,7 @@ export default function Detail() {
     [id]
   );
   const project = projectState.data;
-  const isOwner = Boolean(project && user && project.owner.id === user.id);
+  const isOwner = Boolean(project && user && project.owner?.id === user.id);
   const isStudent = user?.role === 'STUDENT';
 
   const teamsState = useAsync<TeamDto[]>(
@@ -95,8 +95,8 @@ export default function Detail() {
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-[32px] dark:text-slate-50">{project.title}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="inline-flex items-center gap-2 font-medium text-slate-700 dark:text-slate-300">
-                  <Avatar name={project.owner.fullName} size="sm" />
-                  {project.owner.fullName}
+                  <Avatar name={project.owner?.fullName ?? 'Owner'} size="sm" />
+                  {project.owner?.fullName ?? 'Unknown'}
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                   <CalendarClock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -104,7 +104,7 @@ export default function Detail() {
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                   <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                  {project.memberCount}/{project.teamSize} members
+                  {project.memberCount ?? 0}/{project.teamSize} members
                 </span>
               </div>
             </div>
@@ -154,18 +154,18 @@ export default function Detail() {
             </a>
           )}
 
-          {(project.domains.length > 0 || project.skills.length > 0) && (
+{((project.domains?.length ?? 0) > 0 || (project.skills?.length ?? 0) > 0) && (
             <Card>
               <CardHeader>
-                <CardTitle>Domains &amp; skills</CardTitle>
+                <CardTitle>Domains & skills</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-2">
-                {project.domains.map((d) => (
+                {project.domains?.map((d) => (
                   <Badge key={d.id} tone="brand">
                     {d.name}
                   </Badge>
                 ))}
-                {project.skills.map((s) => (
+                {project.skills?.map((s) => (
                   <Badge key={s.id}>{s.name}</Badge>
                 ))}
               </CardContent>
@@ -192,11 +192,11 @@ export default function Detail() {
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-500 dark:text-slate-400">Members</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">{project.memberCount}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{project.memberCount ?? 0}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-500 dark:text-slate-400">Owner</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">{project.owner.fullName}</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{project.owner?.fullName ?? 'Unknown'}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-500 dark:text-slate-400">Created</span>

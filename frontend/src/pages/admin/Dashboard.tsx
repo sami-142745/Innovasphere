@@ -128,8 +128,8 @@ export default function Dashboard() {
   const studentOwners = new Set<string>();
   const facultyOwners = new Set<string>();
   for (const p of projects.data?.content ?? []) {
-    if (p.owner.role === 'STUDENT') studentOwners.add(p.owner.id);
-    else if (p.owner.role === 'FACULTY') facultyOwners.add(p.owner.id);
+    if (p.owner?.role === 'STUDENT') studentOwners.add(p.owner?.id ?? '');
+    else if (p.owner?.role === 'FACULTY') facultyOwners.add(p.owner?.id ?? '');
   }
   const roleData: SeriesDatum[] = [];
   if (studentOwners.size > 0) roleData.push({ label: 'Student', value: studentOwners.size });

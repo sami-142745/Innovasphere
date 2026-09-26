@@ -131,6 +131,44 @@
     animation: shimmer 2.2s linear infinite;
   }
 
+  /* ---- Skeleton shimmer animation (new) ---- */
+  .shimmer-animate {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      110deg,
+      rgb(15 23 42 / 0.04) 8%,
+      rgb(15 23 42 / 0.09) 18%,
+      rgb(15 23 42 / 0.04) 33%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.2s linear infinite;
+  }
+  .dark .shimmer-animate {
+    background: linear-gradient(
+      110deg,
+      rgb(148 163 184 / 0.05) 8%,
+      rgb(148 163 184 / 0.12) 18%,
+      rgb(148 163 184 / 0.05) 33%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2.2s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes animate-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-shimmer {
+    animation: animate-shimmer 1.5s linear infinite;
+  }
+
   /* ---- Decorative aurora blobs ---- */
   .blob {
     position: absolute;

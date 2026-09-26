@@ -153,15 +153,15 @@ export default function Projects() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2.5">
-                      <Avatar name={p.owner.fullName} size="sm" />
-                      <span className="text-slate-700 dark:text-slate-300">{p.owner.fullName}</span>
+                      <Avatar name={p.owner?.fullName ?? 'User'} size="sm" />
+                      <span className="text-slate-700 dark:text-slate-300">{p.owner?.fullName ?? 'Unknown'}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge tone={projectStatusTone(p.status)}>{projectStatusLabel(p.status)}</Badge>
                   </TableCell>
                   <TableCell>
-                    {p.memberCount}/{p.teamSize}
+                    {(p.memberCount ?? 0)}/{p.teamSize}
                   </TableCell>
                   <TableCell>{formatDate(p.createdAt)}</TableCell>
                 </TableRow>
