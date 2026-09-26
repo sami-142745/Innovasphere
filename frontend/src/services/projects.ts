@@ -14,16 +14,27 @@ export interface ProjectSearchQuery extends ProjectQuery {
   skill?: string;
 }
 
+function cleanParams(params: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(params).filter(([_, value]) => value !== undefined && value !== "")
+  );
+}
+
 export const projectService = {
   list(query: ProjectQuery = {}): Promise<Page<ProjectSummaryDto>> {
     return api.get('/api/projects', {
-      params: { page: query.page ?? 0, size: query.size ?? 9, sort: query.sort ?? 'createdAt,desc', status: query.status || undefined }
+      params: cleanParams({
+        page: query.page ?? 0,
+        size: query.size ?? 9,
+        sort: query.sort ?? 'createdAt,desc',
+        status: query.status || undefined
+      })
     }).then((r) => r.data);
   },
 
   search(query: ProjectSearchQuery): Promise<Page<ProjectSummaryDto>> {
     return api.get('/api/projects/search', {
-      params: {
+      params: cleanParams({
         page: query.page ?? 0,
         size: query.size ?? 9,
         sort: query.sort ?? 'createdAt,desc',
@@ -31,7 +42,7 @@ export const projectService = {
         status: query.status,
         domain: query.domain,
         skill: query.skill
-      }
+      })
     }).then((r) => r.data);
   },
 
@@ -41,7 +52,11 @@ export const projectService = {
 
   my(query: ProjectQuery = {}): Promise<Page<ProjectSummaryDto>> {
     return api.get('/api/projects/my', {
-      params: { page: query.page ?? 0, size: query.size ?? 9, sort: query.sort ?? 'createdAt,desc' }
+      params: cleanParams({
+        page: query.page ?? 0,
+        size: query.size ?? 9,
+        sort: query.sort ?? 'createdAt,desc'
+      })
     }).then((r) => r.data);
   },
 

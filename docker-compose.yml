@@ -1,12 +1,10 @@
 services:
   mysql:
-    image: mysql:8.4
+    image: mysql:8.0
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
-      MYSQL_DATABASE: ${DB_NAME:?set DB_NAME in .env}
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -15,6 +13,8 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+    networks:
+      - innovasphere-network
 
   backend:
     build: ./backend-spring
@@ -25,14 +25,18 @@ services:
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: ${DB_NAME:?set DB_NAME in .env}
-      DB_USERNAME: ${DB_USERNAME:-root}
-      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
-      JWT_EXPIRATION: ${JWT_EXPIRATION:-604800000}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      PORT: 8080
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      FRONTEND_URL: ${FRONTEND_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      PORT: ${PORT}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SEED_ENABLED: ${SEED_ENABLED}
+      DB_POOL_MAX: ${DB_POOL_MAX}
+      DB_POOL_MIN: ${DB_POOL_MIN}
     ports:
       - "8080:8080"
     healthcheck:
@@ -41,12 +45,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 45s
+    networks:
+      - innovasphere-network
 
   frontend:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_API_URL: ${VITE_API_URL}
     restart: unless-stopped
     depends_on:
       backend:
@@ -59,6 +65,12 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    networks:
+      - innovasphere-network
 
 volumes:
   mysql_data:
+
+networks:
+  innovasphere-network:
+    driver: bridge

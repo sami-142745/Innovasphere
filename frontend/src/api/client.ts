@@ -9,8 +9,6 @@ const RAW_API_URL =
 
 const API_URL = RAW_API_URL.replace(/\/$/, "");
 
-console.log("[API] Base URL:", API_URL);
-
 export const TOKEN_KEY = "innovasphere.token";
 
 let unauthorizedHandler: (() => void) | null = null;
@@ -39,7 +37,7 @@ function clearAuth(): void {
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 180000,
+  timeout: 30000,
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",
@@ -52,22 +50,15 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  console.log("[API] Request:", config.method?.toUpperCase(), config.url);
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => {
-    console.log("[API] Response:", response.status, response.config.url);
-    return response;
-  },
+  (response) => response,
   (error: AxiosError<ApiErrorResponse>) => {
     if (error.response) {
       const status = error.response.status;
       const url = error.config?.url ?? "unknown";
-
-      console.error("[API] HTTP Error:", status, url);
 
       if (status === 401) {
         clearAuth();
@@ -77,12 +68,10 @@ api.interceptors.response.use(
       const enhancedError = error as AxiosError<ApiErrorResponse> & { status: number };
       enhancedError.status = status;
     } else if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-      console.error("[API] Timeout:", error.config?.url);
       const timeoutError = error as AxiosError<ApiErrorResponse> & { isTimeout: boolean; status: number };
       timeoutError.isTimeout = true;
       timeoutError.status = 408;
     } else if (error.message === "Network Error" || !error.response) {
-      console.error("[API] Network Error:", error.config?.url);
       const networkError = error as AxiosError<ApiErrorResponse> & { isNetworkError: boolean; status: number };
       networkError.isNetworkError = true;
       networkError.status = 0;
