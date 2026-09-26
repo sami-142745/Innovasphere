@@ -26,14 +26,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private static final String[] PUBLIC_PATHS = {
-            "/",
-            "/api/health",
-            "/api/auth/register",
-            "/api/auth/login",
-            "/v3/api-docs/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/error"
+            "/actuator/health",
+            "/api/auth/**",
+            "/api/projects/search",
+            "/api/projects/**",
+            "/api/mentors/**",
+            "/api/skills/**",
+            "/api/research-domains/**"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -73,12 +72,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(PUBLIC_PATHS).permitAll()
-
-                        // Public GET APIs
-                        .requestMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/mentors/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/skills/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/research-domains/**").permitAll()
 
                         // Authenticated project APIs
                         .requestMatchers(HttpMethod.GET, "/api/projects/my").authenticated()
