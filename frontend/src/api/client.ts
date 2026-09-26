@@ -2,10 +2,12 @@ import axios, { AxiosError, type AxiosInstance } from "axios";
 import type { ApiErrorResponse } from "../types";
 import { AUTH_STORAGE_KEY } from "../utils/constants";
 
-const API_URL =
+const RAW_API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
   "http://localhost:8080";
+
+const API_URL = RAW_API_URL.replace(/\/$/, "");
 
 console.log("[API] Base URL:", API_URL);
 
@@ -37,7 +39,8 @@ function clearAuth(): void {
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  timeout: 60000,
+  timeout: 180000,
+  withCredentials: false,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -61,7 +64,6 @@ api.interceptors.response.use(
   },
   (error: AxiosError<ApiErrorResponse>) => {
     if (error.response) {
-      // Server responded with error status
       const status = error.response.status;
       const url = error.config?.url ?? "unknown";
 
@@ -72,7 +74,6 @@ api.interceptors.response.use(
         unauthorizedHandler?.();
       }
 
-      // Enhance error with status for better UX
       const enhancedError = error as AxiosError<ApiErrorResponse> & { status: number };
       enhancedError.status = status;
     } else if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
@@ -102,7 +103,6 @@ export function extractApiError(
     if (data?.message) return data.message;
     if (data?.error) return data.error;
 
-    // Custom messages based on error type
     if ((error as AxiosError<ApiErrorResponse> & { isTimeout?: boolean }).isTimeout) {
       return "Request timed out. The server may be starting up. Please try again in a moment.";
     }

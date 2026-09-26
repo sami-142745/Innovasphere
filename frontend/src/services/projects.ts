@@ -16,27 +16,23 @@ export interface ProjectSearchQuery extends ProjectQuery {
 
 export const projectService = {
   list(query: ProjectQuery = {}): Promise<Page<ProjectSummaryDto>> {
-    return api
-      .get('/api/projects', {
-        params: { page: query.page ?? 0, size: query.size ?? 9, sort: query.sort ?? 'createdAt,desc', status: query.status || undefined }
-      })
-      .then((r) => r.data);
+    return api.get('/api/projects', {
+      params: { page: query.page ?? 0, size: query.size ?? 9, sort: query.sort ?? 'createdAt,desc', status: query.status || undefined }
+    }).then((r) => r.data);
   },
 
   search(query: ProjectSearchQuery): Promise<Page<ProjectSummaryDto>> {
-    return api
-      .get('/api/projects/search', {
-        params: {
-          page: query.page ?? 0,
-          size: query.size ?? 9,
-          sort: query.sort ?? 'createdAt,desc',
-          keyword: query.keyword || undefined,
-          status: query.status || undefined,
-          domain: query.domain || undefined,
-          skill: query.skill || undefined
-        }
-      })
-      .then((r) => r.data);
+    return api.get('/api/projects/search', {
+      params: {
+        page: query.page ?? 0,
+        size: query.size ?? 9,
+        sort: query.sort ?? 'createdAt,desc',
+        keyword: query.keyword,
+        status: query.status,
+        domain: query.domain,
+        skill: query.skill
+      }
+    }).then((r) => r.data);
   },
 
   get(id: string): Promise<ProjectDto> {
@@ -44,11 +40,9 @@ export const projectService = {
   },
 
   my(query: ProjectQuery = {}): Promise<Page<ProjectSummaryDto>> {
-    return api
-      .get('/api/projects/my', {
-        params: { page: query.page ?? 0, size: query.size ?? 9, sort: query.sort ?? 'createdAt,desc' }
-      })
-      .then((r) => r.data);
+    return api.get('/api/projects/my', {
+      params: { page: query.page ?? 0, size: query.size ?? 9, sort: query.sort ?? 'createdAt,desc' }
+    }).then((r) => r.data);
   },
 
   create(payload: ProjectCreateRequest): Promise<ProjectDto> {

@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Filter, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FilterChips } from '../../components/shared/FilterChips';
 import { ProjectCard } from '../../components/shared/ProjectCard';
 import { SortSelect } from '../../components/shared/SortSelect';
 import { EmptyState, ErrorState, GridSkeleton, Input, Pagination, SearchInput } from '../../components/ui';
-import { useAsync } from '../../hooks/useAsync';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useUrlState } from '../../hooks/useUrlState';
 import { projectService } from '../../services/projects';
+import { extractApiError } from '../../api/client';
 import type { Page, ProjectStatus, ProjectSummaryDto } from '../../types';
 import { DEFAULT_PAGE_SIZE, PROJECT_SORT_OPTIONS, PROJECT_STATUSES } from '../../utils/constants';
 
@@ -26,19 +26,13 @@ export default function Directory() {
 
   const pageNumber = Math.max(0, Number(page) || 0);
 
-  const { data, loading, error, reload } = useAsync<Page<ProjectSummaryDto>>(
-    () =>
-      projectService.search({
-        keyword: debouncedKeyword || undefined,
-        status: (status || undefined) as ProjectStatus | undefined,
-        domain: domain.trim() || undefined,
-        skill: skill.trim() || undefined,
-        page: pageNumber,
-        size: DEFAULT_PAGE_SIZE,
-        sort
-      }),
-    [debouncedKeyword, status, domain, skill, pageNumber, sort]
-  );
+  const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const requestIdRef = useRef(0);
 
   const resetPage = () => {
     if (page && page !== '0') setPage('0');
@@ -59,11 +53,59 @@ export default function Directory() {
     resetPage();
   };
 
+  const reload = () => {
+    requestIdRef.current += 1;
+  };
+
   useEffect(() => {
-    if (data && data.totalPages > 0 && pageNumber >= data.totalPages) {
+    const currentRequestId = ++requestIdRef.current;
+
+    let mounted = true;
+
+    async function loadProjects() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await projectService.search({
+          page: pageNumber,
+          size: DEFAULT_PAGE_SIZE,
+          sort,
+          keyword: debouncedKeyword || undefined,
+          domain: domain.trim() || undefined,
+          skill: skill.trim() || undefined,
+          status: (status || undefined) as ProjectStatus | undefined,
+        });
+
+        if (!mounted) return;
+        if (currentRequestId !== requestIdRef.current) return;
+
+        setProjects(data.content ?? []);
+        setTotalElements(data.totalElements ?? 0);
+        setTotalPages(data.totalPages ?? 0);
+      } catch (err) {
+        if (!mounted) return;
+        if (currentRequestId !== requestIdRef.current) return;
+        setError(extractApiError(err));
+      } finally {
+        if (mounted && currentRequestId === requestIdRef.current) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadProjects();
+
+    return () => {
+      mounted = false;
+    };
+  }, [pageNumber, debouncedKeyword, domain, skill, status, sort]);
+
+  useEffect(() => {
+    if (totalPages > 0 && pageNumber >= totalPages) {
       setPage('0');
     }
-  }, [data, pageNumber, setPage]);
+  }, [totalPages, pageNumber, setPage]);
 
   return (
     <div className="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
@@ -130,19 +172,19 @@ export default function Directory() {
       </motion.div>
 
       {/* Results meta */}
-      {!loading && !error && data && (
+      {!loading && !error && totalElements > 0 && (
         <p className="mb-4 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
-          {data.totalElements} project{data.totalElements === 1 ? '' : 's'}
+          {totalElements} project{totalElements === 1 ? '' : 's'}
           {status ? ` · ${STATUS_OPTIONS.find((o) => o.value === status)?.label}` : ''}
         </p>
       )}
 
-      {loading && <GridSkeleton />}
+      {loading && <GridSkeleton count={6} />}
 
       {!loading && error && <ErrorState message={error} onRetry={reload} />}
 
-      {!loading && !error && data && data.content.length === 0 && (
+      {!loading && !error && projects.length === 0 && (
         <EmptyState
           icon={Filter}
           title="No projects match your filters"
@@ -150,10 +192,10 @@ export default function Directory() {
         />
       )}
 
-      {!loading && !error && data && data.content.length > 0 && (
+      {!loading && !error && projects.length > 0 && (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.content.map((p, i) => (
+            {projects.map((p, i) => (
               <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
                 <ProjectCard project={p} />
               </motion.div>
@@ -162,8 +204,8 @@ export default function Directory() {
           <div className="mt-8">
             <Pagination
               page={pageNumber}
-              totalPages={data.totalPages}
-              totalElements={data.totalElements}
+              totalPages={totalPages}
+              totalElements={totalElements}
               pageSize={DEFAULT_PAGE_SIZE}
               onChange={(p) => setPage(String(p))}
             />
