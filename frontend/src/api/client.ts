@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
 import type { ApiErrorResponse } from "../types";
-import { clearAuth } from "../utils/authStorage";
+import { AUTH_STORAGE_KEY, TOKEN_KEY } from "../utils/constants";
+import { getToken, clearAuth } from "../utils/authStorage";
 
 const RAW_API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ??
@@ -9,13 +10,32 @@ const RAW_API_URL =
 
 const API_URL = RAW_API_URL.replace(/\/$/, "");
 
-export const TOKEN_KEY = "innovasphere.token";
-
 let unauthorizedHandler: (() => void) | null = null;
 
 export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
+
+export const api = axios.create({
+  baseURL: API_URL,
+  timeout: 30000,
+  withCredentials: false,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
+api.interceptors.request.use((config) => {
+  const token = getTokenFromStorage();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+    if (import.meta.env.DEV) {
+      console.info("[AUTH] Bearer token attached to", config.method?.toUpperCase(), config.url);
+    }
+  }
+  return config;
+});
 
 function getTokenFromStorage(): string | null {
   try {
@@ -29,16 +49,6 @@ function getTokenFromStorage(): string | null {
   }
   return localStorage.getItem("innovasphere.token");
 }
-
-export const api = axios.create({
-  baseURL: API_URL,
-  timeout: 30000,
-  withCredentials: false,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-});
 
 api.interceptors.request.use((config) => {
   const token = getTokenFromStorage();

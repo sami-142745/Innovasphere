@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { setUnauthorizedHandler, TOKEN_KEY } from '../api/client';
+import { setUnauthorizedHandler } from '../api/client';
 import { authService, type RegisterPayload } from '../services/auth';
 import type { Role, UserProfileDto } from '../types';
-import { AUTH_STORAGE_KEY } from '../utils/constants';
+import { AUTH_STORAGE_KEY, TOKEN_KEY } from '../utils/constants';
 
 export interface StoredAuth {
   token: string;
