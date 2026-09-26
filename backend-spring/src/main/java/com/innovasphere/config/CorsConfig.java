@@ -13,7 +13,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
 
-    @Value("${CORS_ORIGIN:http://localhost:5173}")
+    @Value("${app.cors.allowed-origins:http://localhost:5173,https://innovasphere-4mmu.onrender.com,https://innovasphere-frontend.onrender.com}")
     private String corsOrigins;
 
     @Bean
