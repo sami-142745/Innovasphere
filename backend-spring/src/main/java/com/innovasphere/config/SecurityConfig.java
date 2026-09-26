@@ -26,13 +26,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private static final String[] PUBLIC_PATHS = {
+            "/healthz",
             "/actuator/health",
             "/api/auth/**",
             "/api/projects/search",
             "/api/projects/**",
             "/api/mentors/**",
             "/api/skills/**",
-            "/api/research-domains/**"
+            "/api/research-domains/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

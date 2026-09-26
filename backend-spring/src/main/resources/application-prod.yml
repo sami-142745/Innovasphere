@@ -21,13 +21,18 @@ spring:
     open-in-view: false
     show-sql: false
     database-platform: org.hibernate.dialect.MySQLDialect
+    defer-datasource-initialization: true
 
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
+  main:
+    lazy-initialization: true
+
 server:
   port: ${PORT:10000}
+  address: 0.0.0.0
 
 app:
   jwt:
@@ -39,6 +44,15 @@ app:
 
   seed:
     enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 springdoc:
   api-docs:

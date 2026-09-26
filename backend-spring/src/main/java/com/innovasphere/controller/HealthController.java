@@ -9,10 +9,15 @@ import org.springframework.web.bind.annotation.RestController;
 import com.innovasphere.util.AppVersion;
 
 @RestController
-@RequestMapping("/api")
 public class HealthController {
 
-    @GetMapping("/health")
+    @GetMapping("/healthz")
+    @ResponseStatus(HttpStatus.OK)
+    public HealthZResponse healthz() {
+        return new HealthZResponse("UP", "innovasphere-api");
+    }
+
+    @GetMapping("/api/health")
     @ResponseStatus(HttpStatus.OK)
     public HealthResponse health() {
         return new HealthResponse(
@@ -23,6 +28,8 @@ public class HealthController {
             Instant.now()
         );
     }
+
+    public record HealthZResponse(String status, String service) {}
 
     public record HealthResponse(
         String status,

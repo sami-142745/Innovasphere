@@ -18,6 +18,14 @@ class HealthControllerTest {
     private MockMvc mockMvc;
 
     @Test
+    void healthzEndpointIsPublicAndReturnsUp() throws Exception {
+        mockMvc.perform(get("/healthz"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("UP"))
+            .andExpect(jsonPath("$.service").value("innovasphere-api"));
+    }
+
+    @Test
     void healthEndpointIsPublicAndReturnsUp() throws Exception {
         mockMvc.perform(get("/api/health"))
             .andExpect(status().isOk())
