@@ -16,6 +16,7 @@ export const REGISTRATION_ROLES: Array<{ value: Exclude<Role, 'ADMIN'>; label: s
 export const DEFAULT_PAGE_SIZE = 9;
 
 export const AUTH_STORAGE_KEY = 'innovasphere.auth';
+export const TOKEN_KEY = 'innovasphere.token';
 
 export const PROJECT_SORT_OPTIONS = [
   { value: 'createdAt,desc', label: 'Newest first' },

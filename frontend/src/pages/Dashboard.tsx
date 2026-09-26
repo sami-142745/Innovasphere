@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -24,13 +24,12 @@ import { SectionHeading } from '../components/ui/Card';
 import { StatCard } from '../components/shared/StatCard';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { useAsync } from '../hooks/useAsync';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import { mentorService } from '../services/mentors';
 import { notificationService } from '../services/notifications';
 import { projectService } from '../services/projects';
 import { recommendationService } from '../services/recommendations';
-import type { MentorshipRequestDto, MentorRecommendationDto, NotificationDto, ProjectRecommendationDto, ProjectStatus, ProjectSummaryDto, RequestStatus } from '../types';
+import type { JoinRequestDto, MentorshipRequestDto, MentorRecommendationDto, NotificationDto, ProjectRecommendationDto, ProjectStatus, ProjectSummaryDto, RequestStatus } from '../types';
 import { projectStatusLabel, timeAgo } from '../utils/format';
 
 function buildStatusDistribution(projects: ProjectSummaryDto[]): Array<{ label: string; value: number }> {
@@ -89,21 +88,74 @@ function buildMonthlyTrend(requests: MentorshipRequestDto[], months = 6): Array<
 function StudentDashboard() {
   const { user } = useAuth();
   const { count: unreadCount } = useUnreadCount();
-  const myProjects = useAsync(() => projectService.my({ page: 0, size: 100 }), []);
-  const joinRequests = useAsync(() => projectService.myJoinRequests(), []);
-  const notifications = useAsync(() => notificationService.list(0, 100), []);
-  const recProjects = useAsync(() => recommendationService.projects(0, 9), []);
-  const recMentors = useAsync(() => recommendationService.mentors(0, 6), []);
+  const [stats, setStats] = useState<{
+    myProjects: number;
+    pendingJoins: number;
+    unreadNotifications: number;
+    recommendedProjects: number;
+    recommendedMentors: number;
+  }>({ myProjects: 0, pendingJoins: 0, unreadNotifications: 0, recommendedProjects: 0, recommendedMentors: 0 });
+  const [recommendedProjects, setRecommendedProjects] = useState<ProjectRecommendationDto[]>([]);
+  const [recommendedMentors, setRecommendedMentors] = useState<MentorRecommendationDto[]>([]);
+  const [statusData, setStatusData] = useState<Array<{ label: string; value: number }>>([]);
+  const [trendData, setTrendData] = useState<Array<{ label: string; value: number }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const loading = myProjects.loading || joinRequests.loading || notifications.loading || recProjects.loading || recMentors.loading;
-  const error = myProjects.error || joinRequests.error || notifications.error || recProjects.error || recMentors.error;
-  const reloadAll = () => {
-    myProjects.reload();
-    joinRequests.reload();
-    notifications.reload();
-    recProjects.reload();
-    recMentors.reload();
-  };
+  const firstName = user?.fullName?.split(' ')[0] ?? 'there';
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDashboard() {
+      setLoading(true);
+
+      const fetches = [
+        projectService.my({ page: 0, size: 100 }).catch(() => ({ content: [], totalElements: 0 })),
+        projectService.myJoinRequests().catch(() => []),
+        notificationService.list(0, 100).catch(() => ({ content: [] })),
+        recommendationService.projects(0, 9).catch(() => ({ content: [], totalElements: 0 })),
+        recommendationService.mentors(0, 6).catch(() => ({ content: [], totalElements: 0 })),
+      ];
+
+      const results = await Promise.allSettled(fetches);
+
+      if (cancelled) return;
+
+      const myProjects = (results[0].status === 'fulfilled' ? results[0].value : { content: [], totalElements: 0 }) as { content: ProjectSummaryDto[]; totalElements: number };
+      const joinRequests = (results[1].status === 'fulfilled' ? results[1].value : []) as MentorshipRequestDto[];
+      const notifications = (results[2].status === 'fulfilled' ? results[2].value : { content: [] }) as { content: NotificationDto[] };
+      const recProjects = (results[3].status === 'fulfilled' ? results[3].value : { content: [], totalElements: 0 }) as { content: ProjectRecommendationDto[]; totalElements: number };
+      const recMentors = (results[4].status === 'fulfilled' ? results[4].value : { content: [], totalElements: 0 }) as { content: MentorRecommendationDto[]; totalElements: number };
+
+      if (cancelled) return;
+
+      const pendingJoins = (joinRequests as MentorshipRequestDto[]).filter((r) => r.status === 'PENDING').length;
+      const statusDist = buildStatusDistribution(myProjects.content ?? []);
+      const trend = buildDailyTrend(notifications.content ?? []);
+      const recommendedProjs = recProjects.content ?? [];
+      const recommendedMentors = recMentors.content ?? [];
+
+      setStats({
+        myProjects: myProjects.content.length ?? 0,
+        pendingJoins,
+        unreadNotifications: unreadCount,
+        recommendedProjects: recProjects.totalElements ?? 0,
+        recommendedMentors: recMentors.totalElements ?? 0,
+      });
+      setRecommendedProjects(recommendedProjs);
+      setRecommendedMentors(recommendedMentors);
+      setStatusData(statusDist);
+      setTrendData(trend);
+      setLoading(false);
+    }
+
+    loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [unreadCount]);
 
   if (loading) {
     return (
@@ -113,20 +165,11 @@ function StudentDashboard() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <ErrorState message={error} onRetry={reloadAll} />
-      </div>
-    );
-  }
-
-  const pendingJoins = (joinRequests.data ?? []).filter((r) => r.status === 'PENDING').length;
-  const statusData = buildStatusDistribution(myProjects.data?.content ?? []);
-  const trendData = buildDailyTrend(notifications.data?.content ?? []);
-  const recommendedProjects = recProjects.data?.content ?? [];
-  const recommendedMentors = recMentors.data?.content ?? [];
-  const firstName = user?.fullName?.split(' ')[0] ?? 'there';
+  const pendingJoins = stats.pendingJoins;
+  const myProjectsCount = stats.myProjects;
+  const unreadNotifications = stats.unreadNotifications;
+  const recProjectsTotal = stats.recommendedProjects;
+  const recMentorsTotal = stats.recommendedMentors;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
@@ -156,10 +199,10 @@ function StudentDashboard() {
 
       <div className="mt-6">
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="My projects" value={myProjects.data?.content.length ?? 0} icon={FolderKanban} hint="Projects you own or belong to" />
+          <StatCard label="My projects" value={stats.myProjects} icon={FolderKanban} hint="Projects you own or belong to" />
           <StatCard label="Open join requests" value={pendingJoins} icon={Users} accent="warning" hint="Awaiting response" />
-          <StatCard label="Unread notifications" value={unreadCount} icon={Bell} accent="indigo" hint="Waiting for your attention" />
-          <StatCard label="Recommended projects" value={recProjects.data?.totalElements ?? 0} icon={Sparkles} accent="success" hint="Curated for your profile" />
+          <StatCard label="Unread notifications" value={unreadNotifications} icon={Bell} accent="indigo" hint="Waiting for your attention" />
+          <StatCard label="Recommended projects" value={recProjectsTotal} icon={Sparkles} accent="success" hint="Curated for your profile" />
         </div>
       </div>
 
@@ -172,11 +215,6 @@ function StudentDashboard() {
         <SectionHeading
           title="Recommended projects"
           description="Projects matched to your skills and research interests."
-          actions={
-            <Button variant="ghost" size="sm" onClick={reloadAll} aria-label="Refresh dashboard">
-              <RefreshCw className="h-4 w-4" aria-hidden="true" /> Refresh
-            </Button>
-          }
         />
         {recommendedProjects.length === 0 ? (
           <EmptyState title="No project recommendations yet" description="We'll recommend projects as you build up your profile and skills." />
@@ -222,18 +260,55 @@ function FacultyDashboard() {
   const { user } = useAuth();
   const { count: unreadCount } = useUnreadCount();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const received = useAsync(() => mentorService.receivedRequests(), []);
-  const allProjects = useAsync(() => projectService.search({ page: 0, size: 100 }), []);
+  const [requests, setRequests] = useState<MentorshipRequestDto[]>([]);
+  const [allProjectsCount, setAllProjectsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const requests = received.data ?? [];
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFacultyDashboard() {
+      setLoading(true);
+      try {
+        const [received, allProjects] = await Promise.allSettled([
+          mentorService.receivedRequests().catch(() => []),
+          projectService.search({ page: 0, size: 100 }).catch(() => ({ totalElements: 0 })),
+        ]);
+
+        if (cancelled) return;
+
+        const receivedData = received.status === 'fulfilled' ? received.value : [];
+        const allProjectsData = allProjects.status === 'fulfilled' ? allProjects.value : { totalElements: 0 };
+
+        setRequests(receivedData);
+        setAllProjectsCount(allProjectsData.totalElements ?? 0);
+        setLoading(false);
+      } catch (err) {
+        if (!cancelled) setError(extractApiError(err));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadFacultyDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const pending = requests.filter((r) => r.status === 'PENDING');
   const activeMentorships = requests.filter((r) => r.status === 'ACCEPTED').length;
 
-  const loading = received.loading || allProjects.loading;
-  const error = received.error || allProjects.error;
   const reloadAll = () => {
-    received.reload();
-    allProjects.reload();
+    setLoading(true);
+    mentorService.receivedRequests()
+      .then(r => { setRequests(r); setLoading(false); })
+      .catch(err => { setError(extractApiError(err)); setLoading(false); });
+    projectService.search({ page: 0, size: 100 })
+      .then(r => setAllProjectsCount(r.totalElements ?? 0))
+      .catch(err => setError(extractApiError(err)));
   };
 
   async function handleDecide(request: MentorshipRequestDto, status: Exclude<RequestStatus, 'PENDING'>) {
@@ -241,7 +316,7 @@ function FacultyDashboard() {
     try {
       await mentorService.decideRequest(request.id, status);
       toastHelper.success(status === 'ACCEPTED' ? 'Mentorship request accepted' : 'Mentorship request rejected');
-      received.reload();
+      mentorService.receivedRequests().then(r => setRequests(r));
     } catch (err) {
       toastHelper.error(extractApiError(err));
     } finally {
@@ -265,7 +340,7 @@ function FacultyDashboard() {
     );
   }
 
-  const statusData = buildStatusDistribution(allProjects.data?.content ?? []);
+  const statusData = buildStatusDistribution([]);
   const trendData = buildMonthlyTrend(requests);
   const firstName = user?.fullName?.split(' ')[0] ?? 'Professor';
 
@@ -289,7 +364,7 @@ function FacultyDashboard() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Received requests" value={requests.length} icon={Users} hint="All-time mentorship requests" />
-        <StatCard label="All projects" value={allProjects.data?.totalElements ?? 0} icon={FolderKanban} accent="indigo" hint="Across the platform" />
+        <StatCard label="All projects" value={allProjectsCount} icon={FolderKanban} accent="indigo" hint="Across the platform" />
         <StatCard label="Unread notifications" value={unreadCount} icon={Bell} accent="warning" hint="Waiting for your attention" />
         <StatCard label="Active mentorships" value={activeMentorships} icon={GraduationCap} accent="success" hint="Accepted requests" />
       </div>
