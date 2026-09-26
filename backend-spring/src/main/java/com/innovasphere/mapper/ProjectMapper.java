@@ -46,7 +46,7 @@ public class ProjectMapper {
                 domain,
                 mentorName,
                 project.getTeams() == null ? 0 : project.getTeams().size(),
-                project.getTeams() == null ? 0 : project.getTeams().size(), // temporary maxTeamSize fallback
+                project.getTeams() == null ? 0 : project.getTeams().size(),
                 project.getCreatedAt());
     }
 

@@ -1,17 +1,27 @@
-# Test profile: runs the suite against a dedicated, throwaway database so the
-# shared development database is never polluted by integration tests.
+# Test profile: runs the suite against an embedded H2 database in MySQL
+# compatibility mode so the shared development database is never used and no
+# external MySQL server is required.
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:innovasphere_test}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD}
+    url: jdbc:h2:mem:innovasphere_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
   jpa:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate:
         format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+
+  sql:
+    init:
+      mode: always
+
   devtools:
     restart:
       enabled: false

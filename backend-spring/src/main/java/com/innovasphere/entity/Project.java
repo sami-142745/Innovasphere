@@ -37,8 +37,7 @@ import org.hibernate.annotations.BatchSize;
         @Index(name = "idx_projects_status", columnList = "status"),
         @Index(name = "idx_projects_owner_id", columnList = "owner_id"),
         @Index(name = "idx_projects_created_at", columnList = "createdAt"),
-        @Index(name = "idx_projects_status_created_at", columnList = "status, createdAt"),
-        @Index(name = "idx_projects_domain", columnList = "domain_id")
+        @Index(name = "idx_projects_status_created_at", columnList = "status, createdAt")
     }
 )
 public class Project extends BaseEntity {

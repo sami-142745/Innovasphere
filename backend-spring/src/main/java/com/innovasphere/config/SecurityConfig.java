@@ -79,6 +79,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/healthz").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/projects/my").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/projects").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects/search").permitAll()
@@ -86,13 +87,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/mentors/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/skills/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/research-domains/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-
-                        // Authenticated project APIs
-                        .requestMatchers(HttpMethod.GET, "/api/projects/my").authenticated()
 
                         // Role-based APIs
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

@@ -37,10 +37,10 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.title,
             p.shortDescription,
             p.status,
-            case when size(p.researchDomains) > 0 then (select d.name from p.researchDomains d limit 1) else null end,
-            concat(p.owner.firstName, ' ', p.owner.lastName),
+            case when size(p.researchDomains) > 0 then (select min(d.name) from p.researchDomains d) else null end,
+            p.owner.fullName,
             size(p.teams),
-            p.teamSize,
+            size(p.teams),
             p.createdAt
         )
         from Project p
@@ -57,10 +57,10 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.title,
             p.shortDescription,
             p.status,
-            case when size(p.researchDomains) > 0 then (select d.name from p.researchDomains d limit 1) else null end,
-            concat(p.owner.firstName, ' ', p.owner.lastName),
+            case when size(p.researchDomains) > 0 then (select min(d.name) from p.researchDomains d) else null end,
+            p.owner.fullName,
             size(p.teams),
-            p.teamSize,
+            size(p.teams),
             p.createdAt
         )
         from Project p
@@ -75,10 +75,10 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.title,
             p.shortDescription,
             p.status,
-            case when size(p.researchDomains) > 0 then (select d.name from p.researchDomains d limit 1) else null end,
-            concat(p.owner.firstName, ' ', p.owner.lastName),
+            case when size(p.researchDomains) > 0 then (select min(d.name) from p.researchDomains d) else null end,
+            p.owner.fullName,
             size(p.teams),
-            p.teamSize,
+            size(p.teams),
             p.createdAt
         )
         from Project p
