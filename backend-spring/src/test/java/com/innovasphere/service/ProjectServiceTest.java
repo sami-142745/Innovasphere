@@ -2,6 +2,7 @@ package com.innovasphere.service;
 
 import com.innovasphere.dto.ProjectCreateRequest;
 import com.innovasphere.dto.ProjectDto;
+import com.innovasphere.dto.ProjectSummaryDto;
 import com.innovasphere.dto.ProjectUpdateRequest;
 import com.innovasphere.entity.Project;
 import com.innovasphere.entity.ResearchDomain;
@@ -19,6 +20,8 @@ import com.innovasphere.repository.ProjectRepository;
 import com.innovasphere.repository.ResearchDomainRepository;
 import com.innovasphere.repository.SkillRepository;
 import com.innovasphere.repository.TeamRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -255,18 +259,40 @@ class ProjectServiceTest {
 
     @Test
     void searchNormalizesBlankValuesToNull() {
-        when(projectRepository.search(eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
-            .thenReturn(new PageImpl<>(java.util.List.of()));
+        ProjectSummaryDto dto = new ProjectSummaryDto(
+            UUID.randomUUID(),
+            "AI Research Platform",
+            "Short description",
+            ProjectStatus.IN_PROGRESS,
+            "Artificial Intelligence",
+            "Dr. John Doe",
+            2,
+            5,
+            Instant.now());
+        Page<ProjectSummaryDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1);
+        when(projectRepository.searchSummary(eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
+            .thenReturn(page);
         projectService.search("   ", null, "  ", " ", PageRequest.of(0, 20));
-        verify(projectRepository).search(null, null, null, null, PageRequest.of(0, 20));
+        verify(projectRepository).searchSummary(null, null, null, null, PageRequest.of(0, 20));
     }
 
     @Test
     void searchTrimsProvidedValues() {
-        when(projectRepository.search(eq("ai"), eq(ProjectStatus.IDEA), eq("ml"), eq("python"), any(Pageable.class)))
-            .thenReturn(new PageImpl<>(java.util.List.of()));
+        ProjectSummaryDto dto = new ProjectSummaryDto(
+            UUID.randomUUID(),
+            "AI Research Platform",
+            "Short description",
+            ProjectStatus.IN_PROGRESS,
+            "Artificial Intelligence",
+            "Dr. John Doe",
+            2,
+            5,
+            Instant.now());
+        Page<ProjectSummaryDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1);
+        when(projectRepository.searchSummary(eq("ai"), eq(ProjectStatus.IDEA), eq("ml"), eq("python"), any(Pageable.class)))
+            .thenReturn(page);
         projectService.search(" ai ", ProjectStatus.IDEA, " ml ", " python ", PageRequest.of(0, 20));
-        verify(projectRepository).search("ai", ProjectStatus.IDEA, "ml", "python", PageRequest.of(0, 20));
+        verify(projectRepository).searchSummary("ai", ProjectStatus.IDEA, "ml", "python", PageRequest.of(0, 20));
     }
 
     @Test
