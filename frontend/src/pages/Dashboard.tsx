@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -29,7 +29,7 @@ import { mentorService } from '../services/mentors';
 import { notificationService } from '../services/notifications';
 import { projectService } from '../services/projects';
 import { recommendationService } from '../services/recommendations';
-import type { JoinRequestDto, MentorshipRequestDto, MentorRecommendationDto, NotificationDto, ProjectRecommendationDto, ProjectStatus, ProjectSummaryDto, RequestStatus } from '../types';
+import type { MentorshipRequestDto, MentorRecommendationDto, NotificationDto, ProjectRecommendationDto, ProjectStatus, ProjectSummaryDto, RequestStatus } from '../types';
 import { projectStatusLabel, timeAgo } from '../utils/format';
 
 function buildStatusDistribution(projects: ProjectSummaryDto[]): Array<{ label: string; value: number }> {
@@ -95,8 +95,8 @@ function StudentDashboard() {
     recommendedProjects: number;
     recommendedMentors: number;
   }>({ myProjects: 0, pendingJoins: 0, unreadNotifications: 0, recommendedProjects: 0, recommendedMentors: 0 });
-  const [recommendedProjects, setRecommendedProjects] = useState<ProjectRecommendationDto[]>([]);
-  const [recommendedMentors, setRecommendedMentors] = useState<MentorRecommendationDto[]>([]);
+  const [recommendedProjects, setRecommendedProjects] = useState<import('../types').ProjectRecommendationDto[]>([]);
+  const [recommendedMentors, setRecommendedMentors] = useState<import('../types').MentorRecommendationDto[]>([]);
   const [statusData, setStatusData] = useState<Array<{ label: string; value: number }>>([]);
   const [trendData, setTrendData] = useState<Array<{ label: string; value: number }>>([]);
   const [loading, setLoading] = useState(true);
@@ -104,63 +104,63 @@ function StudentDashboard() {
 
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';
 
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+
+    const fetches = [
+      projectService.my({ page: 0, size: 100 }).catch(() => ({ content: [], totalElements: 0 })),
+      projectService.myJoinRequests().catch(() => []),
+      notificationService.list(0, 100).catch(() => ({ content: [] })),
+      recommendationService.projects(0, 9).catch(() => ({ content: [], totalElements: 0 })),
+      recommendationService.mentors(0, 6).catch(() => ({ content: [], totalElements: 0 })),
+    ];
+
+    const results = await Promise.allSettled(fetches);
+
+    const myProjects = (results[0].status === 'fulfilled' ? results[0].value : { content: [], totalElements: 0 }) as { content: import('../types').ProjectSummaryDto[]; totalElements: number };
+    const joinRequests = (results[1].status === 'fulfilled' ? results[1].value : []) as import('../types').MentorshipRequestDto[];
+    const notifications = (results[2].status === 'fulfilled' ? results[2].value : { content: [] }) as { content: import('../types').NotificationDto[] };
+    const recProjects = (results[3].status === 'fulfilled' ? results[3].value : { content: [], totalElements: 0 }) as { content: import('../types').ProjectRecommendationDto[]; totalElements: number };
+    const recMentors = (results[4].status === 'fulfilled' ? results[4].value : { content: [], totalElements: 0 }) as { content: import('../types').MentorRecommendationDto[]; totalElements: number };
+
+    const pendingJoins = (joinRequests as import('../types').MentorshipRequestDto[]).filter((r) => r.status === 'PENDING').length;
+    const statusDist = buildStatusDistribution(myProjects.content ?? []);
+    const trend = buildDailyTrend(notifications.content ?? []);
+    const recommendedProjs = recProjects.content ?? [];
+    const recommendedMentors = recMentors.content ?? [];
+
+    setStats({
+      myProjects: myProjects.content.length ?? 0,
+      pendingJoins,
+      unreadNotifications: unreadCount,
+      recommendedProjects: recProjects.totalElements ?? 0,
+      recommendedMentors: recMentors.totalElements ?? 0,
+    });
+    setRecommendedProjects(recommendedProjs);
+    setRecommendedMentors(recommendedMentors);
+    setStatusData(statusDist);
+    setTrendData(trend);
+    setLoading(false);
+  }, [unreadCount]);
+
   useEffect(() => {
     let cancelled = false;
-
-    async function loadDashboard() {
-      setLoading(true);
-
-      const fetches = [
-        projectService.my({ page: 0, size: 100 }).catch(() => ({ content: [], totalElements: 0 })),
-        projectService.myJoinRequests().catch(() => []),
-        notificationService.list(0, 100).catch(() => ({ content: [] })),
-        recommendationService.projects(0, 9).catch(() => ({ content: [], totalElements: 0 })),
-        recommendationService.mentors(0, 6).catch(() => ({ content: [], totalElements: 0 })),
-      ];
-
-      const results = await Promise.allSettled(fetches);
-
-      if (cancelled) return;
-
-      const myProjects = (results[0].status === 'fulfilled' ? results[0].value : { content: [], totalElements: 0 }) as { content: ProjectSummaryDto[]; totalElements: number };
-      const joinRequests = (results[1].status === 'fulfilled' ? results[1].value : []) as MentorshipRequestDto[];
-      const notifications = (results[2].status === 'fulfilled' ? results[2].value : { content: [] }) as { content: NotificationDto[] };
-      const recProjects = (results[3].status === 'fulfilled' ? results[3].value : { content: [], totalElements: 0 }) as { content: ProjectRecommendationDto[]; totalElements: number };
-      const recMentors = (results[4].status === 'fulfilled' ? results[4].value : { content: [], totalElements: 0 }) as { content: MentorRecommendationDto[]; totalElements: number };
-
-      if (cancelled) return;
-
-      const pendingJoins = (joinRequests as MentorshipRequestDto[]).filter((r) => r.status === 'PENDING').length;
-      const statusDist = buildStatusDistribution(myProjects.content ?? []);
-      const trend = buildDailyTrend(notifications.content ?? []);
-      const recommendedProjs = recProjects.content ?? [];
-      const recommendedMentors = recMentors.content ?? [];
-
-      setStats({
-        myProjects: myProjects.content.length ?? 0,
-        pendingJoins,
-        unreadNotifications: unreadCount,
-        recommendedProjects: recProjects.totalElements ?? 0,
-        recommendedMentors: recMentors.totalElements ?? 0,
-      });
-      setRecommendedProjects(recommendedProjs);
-      setRecommendedMentors(recommendedMentors);
-      setStatusData(statusDist);
-      setTrendData(trend);
-      setLoading(false);
-    }
-
     loadDashboard();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [unreadCount]);
 
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <GridSkeleton count={6} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+        <ErrorState message={error} onRetry={loadDashboard} />
       </div>
     );
   }
@@ -260,48 +260,40 @@ function FacultyDashboard() {
   const { user } = useAuth();
   const { count: unreadCount } = useUnreadCount();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [requests, setRequests] = useState<MentorshipRequestDto[]>([]);
+  const [requests, setRequests] = useState<import('../types').MentorshipRequestDto[]>([]);
   const [allProjectsCount, setAllProjectsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadFacultyDashboard = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [received, allProjects] = await Promise.allSettled([
+        mentorService.receivedRequests().catch(() => []),
+        projectService.search({ page: 0, size: 100 }).catch(() => ({ totalElements: 0 })),
+      ]);
 
-    async function loadFacultyDashboard() {
-      setLoading(true);
-      try {
-        const [received, allProjects] = await Promise.allSettled([
-          mentorService.receivedRequests().catch(() => []),
-          projectService.search({ page: 0, size: 100 }).catch(() => ({ totalElements: 0 })),
-        ]);
+      const receivedData = received.status === 'fulfilled' ? received.value : [];
+      const allProjectsData = allProjects.status === 'fulfilled' ? allProjects.value : { totalElements: 0 };
 
-        if (cancelled) return;
-
-        const receivedData = received.status === 'fulfilled' ? received.value : [];
-        const allProjectsData = allProjects.status === 'fulfilled' ? allProjects.value : { totalElements: 0 };
-
-        setRequests(receivedData);
-        setAllProjectsCount(allProjectsData.totalElements ?? 0);
-        setLoading(false);
-      } catch (err) {
-        if (!cancelled) setError(extractApiError(err));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      setRequests(receivedData);
+      setAllProjectsCount(allProjectsData.totalElements ?? 0);
+      setLoading(false);
+    } catch (err) {
+      setError(extractApiError(err));
+    } finally {
+      setLoading(false);
     }
+  }, []);
 
+  useEffect(() => {
     loadFacultyDashboard();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const pending = requests.filter((r) => r.status === 'PENDING');
   const activeMentorships = requests.filter((r) => r.status === 'ACCEPTED').length;
 
-  const reloadAll = () => {
+  const reloadAll = useCallback(() => {
     setLoading(true);
     mentorService.receivedRequests()
       .then(r => { setRequests(r); setLoading(false); })
@@ -309,9 +301,9 @@ function FacultyDashboard() {
     projectService.search({ page: 0, size: 100 })
       .then(r => setAllProjectsCount(r.totalElements ?? 0))
       .catch(err => setError(extractApiError(err)));
-  };
+  }, []);
 
-  async function handleDecide(request: MentorshipRequestDto, status: Exclude<RequestStatus, 'PENDING'>) {
+  async function handleDecide(request: import('../types').MentorshipRequestDto, status: Exclude<import('../types').RequestStatus, 'PENDING'>) {
     setBusyId(request.id);
     try {
       await mentorService.decideRequest(request.id, status);

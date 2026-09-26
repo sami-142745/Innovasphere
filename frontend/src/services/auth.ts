@@ -1,6 +1,6 @@
 import { api } from '../api/client';
 import type { AuthResponse, UserProfileDto } from '../types';
-import { AUTH_STORAGE_KEY, TOKEN_KEY } from '../utils/constants';
+import { persistAuth } from '../utils/authStorage';
 
 export interface RegisterPayload {
   firstName: string;
@@ -9,16 +9,6 @@ export interface RegisterPayload {
   email: string;
   password: string;
   role: 'STUDENT' | 'FACULTY';
-}
-
-function persistAuth(auth: AuthResponse): void {
-  const stored = {
-    token: auth.token,
-    user: auth.user,
-    expiresIn: auth.expiresIn,
-  };
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(stored));
-  localStorage.setItem(TOKEN_KEY, auth.token);
 }
 
 export const authService = {

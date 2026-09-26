@@ -1,6 +1,6 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
 import type { ApiErrorResponse } from "../types";
-import { AUTH_STORAGE_KEY } from "../utils/constants";
+import { clearAuth } from "../utils/authStorage";
 
 const RAW_API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ??
@@ -17,9 +17,9 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
-function readToken(): string | null {
+function getTokenFromStorage(): string | null {
   try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    const raw = localStorage.getItem("innovasphere.auth");
     if (raw) {
       const parsed = JSON.parse(raw) as { token?: string };
       if (parsed.token) return parsed.token;
@@ -27,15 +27,10 @@ function readToken(): string | null {
   } catch {
     // Ignore malformed localStorage
   }
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem("innovasphere.token");
 }
 
-function clearAuth(): void {
-  localStorage.removeItem(AUTH_STORAGE_KEY);
-  localStorage.removeItem(TOKEN_KEY);
-}
-
-export const api: AxiosInstance = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
   timeout: 30000,
   withCredentials: false,
@@ -46,9 +41,12 @@ export const api: AxiosInstance = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = readToken();
+  const token = getTokenFromStorage();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    if (import.meta.env.DEV) {
+      console.info("[AUTH] Bearer token attached to", config.method?.toUpperCase(), config.url);
+    }
   }
   return config;
 });
@@ -61,8 +59,8 @@ api.interceptors.response.use(
       const url = error.config?.url ?? "unknown";
 
       if (status === 401) {
-        clearAuth();
-        unauthorizedHandler?.();
+        localStorage.removeItem("innovasphere.auth");
+        localStorage.removeItem("innovasphere.token");
       }
 
       const enhancedError = error as AxiosError<ApiErrorResponse> & { status: number };
