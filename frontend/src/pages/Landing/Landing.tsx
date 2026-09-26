@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -15,6 +16,9 @@ import {
   Wand2,
   Zap
 } from 'lucide-react';
+import { projectService } from '../../services/projects';
+import { setCachedProjects, getCacheKey, getCachedProjects } from '../../utils/projectCache';
+import { DEFAULT_PAGE_SIZE } from '../../utils/constants';
 
 const FEATURES = [
   {
@@ -77,6 +81,28 @@ const fadeUp = {
 };
 
 export default function Landing() {
+  useEffect(() => {
+    // Prefetch projects for instant browse page load
+    const cacheKey = getCacheKey(0, 9, 'createdAt,desc');
+    const cached = getCachedProjects(cacheKey);
+    
+    if (!cached) {
+      projectService.search({
+        page: 0,
+        size: 9,
+        sort: 'createdAt,desc',
+      }).then((data) => {
+        setCachedProjects(cacheKey, {
+          projects: data.content ?? [],
+          totalElements: data.totalElements ?? 0,
+          totalPages: data.totalPages ?? 0,
+        });
+      }).catch(() => {
+        // Ignore prefetch errors
+      });
+    }
+  }, []);
+
   return (
     <div className="relative overflow-hidden">
       {/* ---- Hero ---- */}

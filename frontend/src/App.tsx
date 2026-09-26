@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useRef } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from './components/error/ErrorBoundary';
 import { AuthLayout } from './layouts/AuthLayout';
 import { PublicLayout } from './layouts/PublicLayout';
@@ -40,6 +40,11 @@ const AdminFacultyPage = lazy(() => import('./pages/admin/Faculty'));
 
 const NotFoundPage = lazy(() => import('./pages/error/NotFound'));
 
+// Preload function for the ProjectDirectory route
+const preloadProjectDirectory = () => {
+  import('./pages/projects/Directory');
+};
+
 function PageFallback() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center">
@@ -49,10 +54,42 @@ function PageFallback() {
   );
 }
 
+function NavigationPreloader() {
+  const location = useLocation();
+  const preloadTimeoutRef = useRef<number | null>(null);
+
+  // Preload ProjectDirectory when hovering over any link to /browse or /projects
+  const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const href = e.currentTarget.getAttribute('href');
+    if (href === '/browse' || href === '/projects' || href === '/mentors') {
+      preloadTimeoutRef.current = window.setTimeout(() => {
+        import('./pages/projects/Directory');
+        import('./pages/mentors/Directory');
+      }, 100);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (preloadTimeoutRef.current) {
+      clearTimeout(preloadTimeoutRef.current);
+      preloadTimeoutRef.current = null;
+    }
+  };
+
+  return (
+    <>
+      <a href="/browse" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} style={{ display: 'none' }} />
+      <a href="/projects" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} style={{ display: 'none' }} />
+      <a href="/mentors" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} style={{ display: 'none' }} />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>
+        <NavigationPreloader />
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Landing />} />

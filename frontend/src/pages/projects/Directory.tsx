@@ -11,6 +11,7 @@ import { projectService } from '../../services/projects';
 import { extractApiError } from '../../api/client';
 import type { Page, ProjectStatus, ProjectSummaryDto } from '../../types';
 import { DEFAULT_PAGE_SIZE, PROJECT_SORT_OPTIONS, PROJECT_STATUSES } from '../../utils/constants';
+import { getCachedProjects, setCachedProjects, getCacheKey } from '../../utils/projectCache';
 
 const STATUS_OPTIONS = [{ value: '', label: 'All' }, ...PROJECT_STATUSES];
 const SORT_OPTIONS = PROJECT_SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }));
@@ -57,13 +58,30 @@ export default function Directory() {
     requestIdRef.current += 1;
   };
 
+  // Load cached data immediately on mount or when dependencies change
+  useEffect(() => {
+    const cacheKey = getCacheKey(pageNumber, DEFAULT_PAGE_SIZE, sort, debouncedKeyword || undefined, domain.trim() || undefined, skill.trim() || undefined, status || undefined);
+    const cached = getCachedProjects(cacheKey);
+    
+    if (cached) {
+      setProjects(cached.projects);
+      setTotalElements(cached.totalElements);
+      setTotalPages(cached.totalPages);
+      setLoading(false);
+    }
+  }, [pageNumber, debouncedKeyword, domain, skill, status, sort]);
+
   useEffect(() => {
     const currentRequestId = ++requestIdRef.current;
 
     let mounted = true;
 
     async function loadProjects() {
-      setLoading(true);
+      // Don't set loading to true if we already have data
+      const hasData = projects.length > 0;
+      if (!hasData) {
+        setLoading(true);
+      }
       setError(null);
 
       try {
@@ -83,6 +101,14 @@ export default function Directory() {
         setProjects(data.content ?? []);
         setTotalElements(data.totalElements ?? 0);
         setTotalPages(data.totalPages ?? 0);
+
+        // Update cache
+        const cacheKey = getCacheKey(pageNumber, DEFAULT_PAGE_SIZE, sort, debouncedKeyword || undefined, domain.trim() || undefined, skill.trim() || undefined, status || undefined);
+        setCachedProjects(cacheKey, {
+          projects: data.content ?? [],
+          totalElements: data.totalElements ?? 0,
+          totalPages: data.totalPages ?? 0,
+        });
       } catch (err) {
         if (!mounted) return;
         if (currentRequestId !== requestIdRef.current) return;
