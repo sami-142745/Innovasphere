@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Filter, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FilterChips } from '../../components/shared/FilterChips';
@@ -11,7 +11,7 @@ import { projectService } from '../../services/projects';
 import { extractApiError } from '../../api/client';
 import type { Page, ProjectStatus, ProjectSummaryDto } from '../../types';
 import { DEFAULT_PAGE_SIZE, PROJECT_SORT_OPTIONS, PROJECT_STATUSES } from '../../utils/constants';
-import { getCachedProjects, setCachedProjects, getCacheKey } from '../../utils/projectCache';
+import { getProjectCache, setProjectCache, getCacheKey } from '../../utils/projectCache';
 
 const STATUS_OPTIONS = [{ value: '', label: 'All' }, ...PROJECT_STATUSES];
 const SORT_OPTIONS = PROJECT_SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }));
@@ -58,18 +58,64 @@ export default function Directory() {
     requestIdRef.current += 1;
   };
 
-  // Load cached data immediately on mount or when dependencies change
+  // Build the current query object
+  const query = {
+    page: pageNumber,
+    size: DEFAULT_PAGE_SIZE,
+    sort,
+    keyword: debouncedKeyword || undefined,
+    domain: domain.trim() || undefined,
+    skill: skill.trim() || undefined,
+    status: (status || undefined) as ProjectStatus | undefined,
+  };
+
+  // Load cached data immediately on mount or when query changes
   useEffect(() => {
-    const cacheKey = getCacheKey(pageNumber, DEFAULT_PAGE_SIZE, sort, debouncedKeyword || undefined, domain.trim() || undefined, skill.trim() || undefined, status || undefined);
-    const cached = getCachedProjects(cacheKey);
+    const cached = getProjectCache(query);
     
     if (cached) {
-      setProjects(cached.projects);
-      setTotalElements(cached.totalElements);
-      setTotalPages(cached.totalPages);
+      setProjects(cached.content ?? []);
+      setTotalElements(cached.totalElements ?? 0);
+      setTotalPages(cached.totalPages ?? 0);
       setLoading(false);
     }
   }, [pageNumber, debouncedKeyword, domain, skill, status, sort]);
+
+  // Prefetch neighbor pages for instant pagination
+  useEffect(() => {
+    if (loading) return;
+    
+    const nextPage = pageNumber + 1;
+    const prevPage = pageNumber - 1;
+
+    const baseQuery = {
+      page: pageNumber,
+      size: DEFAULT_PAGE_SIZE,
+      sort,
+      keyword: debouncedKeyword || undefined,
+      domain: domain.trim() || undefined,
+      skill: skill.trim() || undefined,
+      status: (status || undefined) as ProjectStatus | undefined,
+    };
+
+    if (nextPage < totalPages) {
+      const nextQuery = { ...baseQuery, page: nextPage };
+      if (!getProjectCache(nextQuery)) {
+        projectService.search(nextQuery)
+          .then(data => setProjectCache(nextQuery, data))
+          .catch(() => {});
+      }
+    }
+
+    if (prevPage >= 0) {
+      const prevQuery = { ...baseQuery, page: prevPage };
+      if (!getProjectCache(prevQuery)) {
+        projectService.search(prevQuery)
+          .then(data => setProjectCache(prevQuery, data))
+          .catch(() => {});
+      }
+    }
+  }, [loading, pageNumber, totalPages, debouncedKeyword, domain, skill, status, sort]);
 
   useEffect(() => {
     const currentRequestId = ++requestIdRef.current;
@@ -77,7 +123,16 @@ export default function Directory() {
     let mounted = true;
 
     async function loadProjects() {
-      // Only set loading to true if we don't already have data
+      const currentQuery = {
+        page: pageNumber,
+        size: DEFAULT_PAGE_SIZE,
+        sort,
+        keyword: debouncedKeyword || undefined,
+        domain: domain.trim() || undefined,
+        skill: skill.trim() || undefined,
+        status: (status || undefined) as ProjectStatus | undefined,
+      };
+
       const hasData = projects.length > 0;
       if (!hasData) {
         setLoading(true);
@@ -85,15 +140,7 @@ export default function Directory() {
       setError(null);
 
       try {
-        const data = await projectService.search({
-          page: pageNumber,
-          size: DEFAULT_PAGE_SIZE,
-          sort,
-          keyword: debouncedKeyword || undefined,
-          domain: domain.trim() || undefined,
-          skill: skill.trim() || undefined,
-          status: (status || undefined) as ProjectStatus | undefined,
-        });
+        const data = await projectService.search(currentQuery);
 
         if (!mounted) return;
         if (currentRequestId !== requestIdRef.current) return;
@@ -103,12 +150,7 @@ export default function Directory() {
         setTotalPages(data.totalPages ?? 0);
 
         // Update cache
-        const cacheKey = getCacheKey(pageNumber, DEFAULT_PAGE_SIZE, sort, debouncedKeyword || undefined, domain.trim() || undefined, skill.trim() || undefined, status || undefined);
-        setCachedProjects(cacheKey, {
-          projects: data.content ?? [],
-          totalElements: data.totalElements ?? 0,
-          totalPages: data.totalPages ?? 0,
-        });
+        setProjectCache(currentQuery, data);
       } catch (err) {
         if (!mounted) return;
         if (currentRequestId !== requestIdRef.current) return;
@@ -222,9 +264,11 @@ export default function Directory() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((p, i) => (
-              <motion.div key={p.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <ProjectCard project={p} />
-              </motion.div>
+              <React.Fragment key={p.id}>
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                  <ProjectCard project={p} />
+                </motion.div>
+              </React.Fragment>
             ))}
           </div>
           <div className="mt-8">

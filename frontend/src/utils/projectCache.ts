@@ -1,52 +1,61 @@
-import type { ProjectSummaryDto } from '../types';
+import type { Page, ProjectSummaryDto } from '../types';
 
-interface CachedProjects {
-  projects: ProjectSummaryDto[];
-  totalElements: number;
-  totalPages: number;
+export interface ProjectSearchQuery {
+  page?: number;
+  size?: number;
+  sort?: string;
+  keyword?: string;
+  domain?: string;
+  skill?: string;
+  status?: string;
+}
+
+type ProjectCacheEntry = {
   timestamp: number;
-}
-
-interface CacheEntry {
-  key: string;
-  data: CachedProjects;
-}
+  data: Page<ProjectSummaryDto>;
+};
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-const cache = new Map<string, CachedProjects>();
+const cache = new Map<string, ProjectCacheEntry>();
 
-export function getCacheKey(
-  page: number,
-  size: number,
-  sort: string,
-  keyword?: string,
-  domain?: string,
-  skill?: string,
-  status?: string
-): string {
-  return JSON.stringify({ page, size, sort, keyword, domain, skill, status });
+export function getCacheKey(query: ProjectSearchQuery): string {
+  return JSON.stringify({
+    page: query.page ?? 0,
+    size: query.size ?? 9,
+    sort: query.sort ?? 'createdAt,desc',
+    keyword: query.keyword ?? '',
+    domain: query.domain ?? '',
+    skill: query.skill ?? '',
+    status: query.status ?? '',
+  });
 }
 
-export function getCachedProjects(key: string): CachedProjects | null {
+export function getProjectCache(query: ProjectSearchQuery): Page<ProjectSummaryDto> | null {
+  const key = getCacheKey(query);
   const cached = cache.get(key);
   if (!cached) return null;
-  
-  const isExpired = Date.now() - cached.timestamp > CACHE_DURATION;
+
+  const isExpired = Date.now() - cached.timestamp > 5 * 60 * 1000;
   if (isExpired) {
     cache.delete(key);
     return null;
   }
-  
-  return cached;
+
+  return cached.data;
 }
 
-export function setCachedProjects(key: string, data: Omit<CachedProjects, 'timestamp'>): void {
+export function setProjectCache(query: ProjectSearchQuery, data: Page<ProjectSummaryDto>): void {
+  const key = getCacheKey(query);
   cache.set(key, {
-    ...data,
     timestamp: Date.now(),
+    data,
   });
 }
 
-export function clearCache(): void {
+export function clearProjectCache(): void {
   cache.clear();
+}
+
+export function getCacheKeys(): string[] {
+  return Array.from(cache.keys());
 }

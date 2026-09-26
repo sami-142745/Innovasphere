@@ -6,7 +6,23 @@ const PROJECTS = [
   makeProject({ id: 'p-1', title: 'Neural Interface Design', status: 'IN_PROGRESS' }),
   makeProject({ id: 'p-2', title: 'Quantum Error Correction', status: 'LOOKING_FOR_TEAM' }),
   makeProject({ id: 'p-3', title: 'Green Energy Grids', status: 'IDEA' }),
-  makeProject({ id: 'p-4', title: 'Autonomous Drones', status: 'UNDER_REVIEW' })
+  makeProject({ id: 'p-4', title: 'Autonomous Drones', status: 'UNDER_REVIEW' }),
+  makeProject({ id: 'p-5', title: 'Blockchain Voting', status: 'IN_PROGRESS' }),
+  makeProject({ id: 'p-6', title: 'Climate Modeling', status: 'LOOKING_FOR_TEAM' }),
+  makeProject({ id: 'p-7', title: 'Protein Folding', status: 'IDEA' }),
+  makeProject({ id: 'p-8', title: 'Quantum Cryptography', status: 'UNDER_REVIEW' }),
+  makeProject({ id: 'p-9', title: 'Solar Cell Efficiency', status: 'IN_PROGRESS' }),
+  makeProject({ id: 'p-10', title: 'Brain-Computer Interface', status: 'LOOKING_FOR_TEAM' }),
+  makeProject({ id: 'p-11', title: 'Fusion Energy', status: 'IDEA' }),
+  makeProject({ id: 'p-12', title: 'CRISPR Gene Editing', status: 'UNDER_REVIEW' }),
+  makeProject({ id: 'p-13', title: 'Dark Matter Detection', status: 'IN_PROGRESS' }),
+  makeProject({ id: 'p-14', title: 'Exoplanet Atmosphere', status: 'LOOKING_FOR_TEAM' }),
+  makeProject({ id: 'p-15', title: 'Neuromorphic Computing', status: 'IDEA' }),
+  makeProject({ id: 'p-16', title: 'Carbon Capture', status: 'UNDER_REVIEW' }),
+  makeProject({ id: 'p-17', title: 'Quantum Teleportation', status: 'IN_PROGRESS' }),
+  makeProject({ id: 'p-18', title: 'Synthetic Biology', status: 'LOOKING_FOR_TEAM' }),
+  makeProject({ id: 'p-19', title: 'Gravitational Waves', status: 'IDEA' }),
+  makeProject({ id: 'p-20', title: 'Metamaterials', status: 'UNDER_REVIEW' }),
 ];
 
 const NOTIFICATIONS = [

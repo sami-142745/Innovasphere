@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom/vitest';
-import { afterAll, afterEach, beforeAll } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { configure } from '@testing-library/dom';
 import { server } from './server';
+import { clearProjectCache } from '../utils/projectCache';
 
 configure({ asyncUtilTimeout: 5000 });
 
@@ -33,6 +34,9 @@ if (!window.matchMedia) {
 }
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+beforeEach(() => {
+  clearProjectCache();
+});
 afterEach(() => {
   server.resetHandlers();
   cleanup();
