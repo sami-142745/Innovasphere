@@ -77,7 +77,7 @@ export default function Directory() {
     let mounted = true;
 
     async function loadProjects() {
-      // Don't set loading to true if we already have data
+      // Only set loading to true if we don't already have data
       const hasData = projects.length > 0;
       if (!hasData) {
         setLoading(true);

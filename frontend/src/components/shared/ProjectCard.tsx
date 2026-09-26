@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Rocket, ArrowRight } from 'lucide-react';
 import type { ProjectSummaryDto } from '../../types';
@@ -6,7 +7,7 @@ import { Avatar } from '../ui/Avatar';
 import { cn } from '../../utils/cn';
 import { coverGradient, formatDate, projectStatusLabel, projectStatusTone } from '../../utils/format';
 
-export function ProjectCard({ project, matchScore }: { project: ProjectSummaryDto; matchScore?: number }) {
+export const ProjectCard = memo(function ProjectCard({ project, matchScore }: { project: ProjectSummaryDto; matchScore?: number }) {
   const tone = projectStatusTone(project.status);
   return (
     <Link
@@ -70,4 +71,4 @@ export function ProjectCard({ project, matchScore }: { project: ProjectSummaryDt
       </div>
     </Link>
   );
-}
+});
