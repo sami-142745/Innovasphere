@@ -29,7 +29,7 @@ public class ProjectMapper {
             ? project.getResearchDomains().iterator().next().getName()
             : null;
         String mentorName = project.getOwner() != null
-            ? project.getOwner().getFirstName() + " " + project.getOwner().getLastName()
+            ? project.getOwner().getFullName()
             : null;
         return new ProjectSummaryDto(
             project.getId(),
@@ -38,8 +38,8 @@ public class ProjectMapper {
             project.getStatus(),
             domain,
             mentorName,
-            project.getTeams().size(),
-            project.getTeamSize(),
+            project.getTeams() == null ? 0 : project.getTeams().size(),
+            project.getMaxTeamSize(),
             project.getCreatedAt()
         );
     }
@@ -58,8 +58,8 @@ public class ProjectMapper {
             userMapper.toDto(project.getOwner()),
             researchDomainMapper.toDtoSet(project.getResearchDomains()),
             toSkillDtos(project.getSkills()),
-            project.getTeams().size(),
-            project.getMembers().size(),
+            project.getTeams() == null ? 0 : project.getTeams().size(),
+            project.getMembers() == null ? 0 : project.getMembers().size(),
             project.getCreatedAt(),
             project.getUpdatedAt()
         );

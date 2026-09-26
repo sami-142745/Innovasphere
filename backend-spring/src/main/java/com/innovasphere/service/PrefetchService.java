@@ -1,14 +1,12 @@
 package com.innovasphere.service;
 
-import com.innovasphere.dto.ProjectSummaryDto;
 import com.innovasphere.enums.ProjectStatus;
 import org.springframework.cache.CacheManager;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 public class PrefetchService {
@@ -25,12 +23,20 @@ public class PrefetchService {
     public void prefetchAdjacentPages(int currentPage, int totalPages, Pageable pageable, ProjectStatus status,
                                       String keyword, String domain, String skill, String sort) {
         if (currentPage + 1 < totalPages) {
-            Pageable nextPageable = Pageable.ofSize(pageable.getPageSize()).withPage(currentPage + 1).withSort(pageable.getSort());
+            Pageable nextPageable = PageRequest.of(
+                currentPage + 1,
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+            );
             prefetchPage(nextPageable, status, keyword, domain, skill, sort, currentPage + 1);
         }
 
         if (currentPage - 1 >= 0) {
-            Pageable prevPageable = Pageable.ofSize(pageable.getPageSize()).withPage(currentPage - 1).withSort(pageable.getSort());
+            Pageable prevPageable = PageRequest.of(
+                Math.max(0, currentPage - 1),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+            );
             prefetchPage(prevPageable, status, keyword, domain, skill, sort, currentPage - 1);
         }
     }
