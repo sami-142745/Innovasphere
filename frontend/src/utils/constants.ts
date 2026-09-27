@@ -15,6 +15,13 @@ export const REGISTRATION_ROLES: Array<{ value: Exclude<Role, 'ADMIN'>; label: s
 
 export const DEFAULT_PAGE_SIZE = 9;
 
+/**
+ * Browse Projects uses a denser grid (6 per page) so more of the first screen
+ * is project content instead of pagination chrome. Mentor and other
+ * directories keep {@link DEFAULT_PAGE_SIZE}.
+ */
+export const PROJECT_DIRECTORY_PAGE_SIZE = 6;
+
 export const AUTH_STORAGE_KEY = 'innovasphere.auth';
 export const TOKEN_KEY = 'innovasphere.token';
 

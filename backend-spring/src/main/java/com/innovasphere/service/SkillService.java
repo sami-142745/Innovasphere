@@ -1,5 +1,6 @@
 package com.innovasphere.service;
 
+import com.innovasphere.config.CacheConfig;
 import com.innovasphere.dto.SkillCreateRequest;
 import com.innovasphere.dto.SkillDto;
 import com.innovasphere.entity.Skill;
@@ -10,6 +11,8 @@ import com.innovasphere.repository.SkillRepository;
 import com.innovasphere.repository.StudentSkillRepository;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,24 +37,33 @@ public class SkillService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.SKILLS, key = "'list'")
     public List<SkillDto> list() {
-        return skillRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
-            .map(skillMapper::toDto)
-            .toList();
+        return load(null);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.SKILLS, key = "'search:' + (#keyword == null ? '' : #keyword.trim().toLowerCase())")
     public List<SkillDto> search(String keyword) {
+        return load(keyword);
+    }
+
+    /**
+     * Both cached entry points delegate here so the query itself lives in a single
+     * place, and so a self-invocation can never bypass the proxy-managed cache.
+     */
+    private List<SkillDto> load(String keyword) {
         String normalized = keyword != null ? keyword.trim() : null;
-        if (normalized == null || normalized.isEmpty()) {
-            return list();
-        }
-        return skillRepository.findByNameContainingIgnoreCase(normalized, Sort.by(Sort.Direction.ASC, "name")).stream()
+        return (normalized == null || normalized.isEmpty()
+                ? skillRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
+                : skillRepository.findByNameContainingIgnoreCase(normalized, Sort.by(Sort.Direction.ASC, "name")))
+            .stream()
             .map(skillMapper::toDto)
             .toList();
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.SKILLS, allEntries = true)
     public SkillDto create(SkillCreateRequest request) {
         String name = request.name().trim();
         if (skillRepository.existsByNameIgnoreCase(name)) {
@@ -66,6 +78,7 @@ public class SkillService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.SKILLS, allEntries = true)
     public void delete(UUID skillId) {
         Skill skill = skillRepository.findById(skillId)
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "SKILL_NOT_FOUND", "Skill not found"));

@@ -11,33 +11,46 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * Project persistence.
+ *
+ * <p><b>Pagination rules.</b> No pageable query here may join-fetch a collection
+ * (directly or through {@code @EntityGraph}): Hibernate would have to hydrate the
+ * whole result set before slicing it and would log
+ * {@code HHH90003004: firstResult/maxResults specified with collection fetch
+ * mode; applying in memory}. Every paginated read therefore uses a constructor
+ * projection, which Spring Data turns into a single {@code LIMIT}/{@code OFFSET}
+ * statement with the sort supplied by the {@link Pageable}.
+ */
 public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
-    // Use projection queries for paginated results to avoid in-memory pagination
-    @Override
-    Page<Project> findAll(Pageable pageable);
+    // ---------------------------------------------------------------------
+    // Browse / search projections (SQL pagination, no entity graph)
+    // ---------------------------------------------------------------------
 
-    Page<Project> findByStatus(ProjectStatus status, Pageable pageable);
-
-    Page<Project> findByStatusNot(ProjectStatus status, Pageable pageable);
-
-    Page<Project> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
-
-    Page<Project> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
-        String titleKeyword, String descriptionKeyword, Pageable pageable);
-
-    Page<Project> findDistinctByResearchDomains_NameContainingIgnoreCase(String keyword, Pageable pageable);
-
-    Page<Project> findDistinctBySkills_Skill_NameContainingIgnoreCase(String keyword, Pageable pageable);
-
-    // Projection-based queries for paginated results (no EntityGraph, no in-memory pagination)
     @Query("""
         select new com.innovasphere.dto.ProjectSummaryDto(
             p.id,
             p.title,
             p.shortDescription,
             p.status,
-            case when size(p.researchDomains) > 0 then (select min(d.name) from p.researchDomains d) else null end,
+            (select min(d.name) from p.researchDomains d),
+            p.owner.fullName,
+            size(p.teams),
+            size(p.teams),
+            p.createdAt
+        )
+        from Project p
+        """)
+    Page<ProjectSummaryDto> findAllSummary(Pageable pageable);
+
+    @Query("""
+        select new com.innovasphere.dto.ProjectSummaryDto(
+            p.id,
+            p.title,
+            p.shortDescription,
+            p.status,
+            (select min(d.name) from p.researchDomains d),
             p.owner.fullName,
             size(p.teams),
             size(p.teams),
@@ -45,7 +58,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
         )
         from Project p
         where (:status is null or p.status = :status)
-        order by p.createdAt desc
         """)
     Page<ProjectSummaryDto> findSummaryByStatus(
         @Param("status") ProjectStatus status,
@@ -57,25 +69,26 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.title,
             p.shortDescription,
             p.status,
-            case when size(p.researchDomains) > 0 then (select min(d.name) from p.researchDomains d) else null end,
+            (select min(d.name) from p.researchDomains d),
             p.owner.fullName,
             size(p.teams),
             size(p.teams),
             p.createdAt
         )
         from Project p
-        order by p.createdAt desc
+        where p.owner.id = :ownerId
         """)
-    Page<ProjectSummaryDto> findAllSummary(Pageable pageable);
+    Page<ProjectSummaryDto> findAllSummaryByOwnerId(
+        @Param("ownerId") UUID ownerId,
+        Pageable pageable);
 
-    // Projection-based search with filtering (no EntityGraph, no in-memory pagination)
     @Query("""
         select new com.innovasphere.dto.ProjectSummaryDto(
             p.id,
             p.title,
             p.shortDescription,
             p.status,
-            case when size(p.researchDomains) > 0 then (select min(d.name) from p.researchDomains d) else null end,
+            (select min(d.name) from p.researchDomains d),
             p.owner.fullName,
             size(p.teams),
             size(p.teams),
@@ -91,7 +104,6 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
                or exists (select 1 from p.researchDomains d where lower(d.name) like lower(concat('%', :domain, '%'))))
           and (:skill is null
                or exists (select 1 from p.skills ps where lower(ps.skill.name) like lower(concat('%', :skill, '%'))))
-        order by p.createdAt desc
         """)
     Page<ProjectSummaryDto> searchSummary(
         @Param("keyword") String keyword,
@@ -100,9 +112,26 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
         @Param("skill") String skill,
         Pageable pageable);
 
+    // ---------------------------------------------------------------------
+    // Non paginated reads and derived lookups
+    // ---------------------------------------------------------------------
+
     List<Project> findByOwnerId(UUID ownerId);
 
     Page<Project> findByOwnerId(UUID ownerId, Pageable pageable);
+
+    Page<Project> findByStatus(ProjectStatus status, Pageable pageable);
+
+    Page<Project> findByStatusNot(ProjectStatus status, Pageable pageable);
+
+    Page<Project> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
+
+    Page<Project> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
+        String titleKeyword, String descriptionKeyword, Pageable pageable);
+
+    Page<Project> findDistinctByResearchDomains_NameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    Page<Project> findDistinctBySkills_Skill_NameContainingIgnoreCase(String keyword, Pageable pageable);
 
     long countByStatus(ProjectStatus status);
 

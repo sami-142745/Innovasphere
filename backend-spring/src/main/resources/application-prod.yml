@@ -1,10 +1,16 @@
-# Production Configuration - Innovasphere v1.0
+# Production Configuration - Innovasphere v1.1
+#
+# Every value is supplied through the environment (Render dashboard / render.yaml).
+# Nothing secret is hardcoded in this file.
+#
+# The datasource accepts the standard Spring names first and falls back to the
+# DB_* pair, so either variable convention works without editing this file.
 
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true&useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:innovasphere}?createDatabaseIfNotExist=true&useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD}}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
@@ -20,7 +26,6 @@ spring:
       ddl-auto: update
     open-in-view: false
     show-sql: false
-    database-platform: org.hibernate.dialect.MySQLDialect
     defer-datasource-initialization: true
 
   jackson:
@@ -33,9 +38,10 @@ spring:
 server:
   port: ${PORT:10000}
   address: 0.0.0.0
+  shutdown: graceful
   compression:
     enabled: true
-    mime-types: application/json,text/html,text/css,application/javascript
+    mime-types: application/json,application/javascript,text/javascript,text/html,text/css,text/plain,image/svg+xml
     min-response-size: 1024
 
 app:
@@ -44,7 +50,7 @@ app:
     expiration-ms: ${JWT_EXPIRATION:604800000}
 
   cors:
-    allowed-origins: ${CORS_ORIGIN:https://innovasphere-frontend.onrender.com}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,https://innovasphere-4mmu.onrender.com,https://innovasphere-frontend.onrender.com}
 
   seed:
     enabled: false
@@ -57,6 +63,8 @@ management:
   endpoint:
     health:
       show-details: never
+      probes:
+        enabled: true
 
 springdoc:
   api-docs:
@@ -67,4 +75,5 @@ springdoc:
 logging:
   level:
     org.springframework.security: INFO
-    org.hibernate.SQL: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.data.web.PageModule$WarningLoggingModifier: ERROR

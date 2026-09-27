@@ -3,12 +3,10 @@ package com.innovasphere.config;
 import com.innovasphere.security.CustomUserDetailsService;
 import com.innovasphere.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -49,18 +47,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
-
-    @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
+    /**
+     * Registered as a bean, so Spring Boot's servlet filter registration applies it
+     * to every request (including /healthz and /actuator/**). It is deliberately NOT
+     * added to the security filter chain as well - that used to execute the ETag
+     * computation twice per request.
+     */
     @Bean
     public ShallowEtagHeaderFilter shallowEtagHeaderFilter() {
         return new ShallowEtagHeaderFilter();
@@ -69,40 +65,48 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        // Built inline (not exposed as a bean) so Spring Security does not also wire
+        // it as the global AuthenticationProvider - that produced an
+        // InitializeUserDetailsManagerConfigurer advisory on every startup.
+        DaoAuthenticationProvider authenticationProvider =
+                new DaoAuthenticationProvider(userDetailsService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(cacheControlFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(shallowEtagHeaderFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        // --- infrastructure -------------------------------------------------
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/healthz").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
+                        .requestMatchers("/healthz", "/api/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // --- auth ----------------------------------------------------------
+                        // Declared BEFORE /api/projects/** so the authenticated matcher wins.
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects/my").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/projects").permitAll()
+
+                        // --- public read-only catalogue ------------------------------------
                         .requestMatchers(HttpMethod.GET, "/api/projects/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/projects/search").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/mentors").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/mentors/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/skills/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/research-domains/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
 
-                        // Role-based APIs
+                        // --- role based ----------------------------------------------------
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/faculty/**").hasRole("FACULTY")
                         .requestMatchers("/api/student/**").hasRole("STUDENT")
 
                         .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(authenticationProvider)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

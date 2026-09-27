@@ -153,25 +153,26 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProjectSummaryDto> list(ProjectStatus status, Pageable pageable) {
-        Page<Project> result = status != null
-            ? projectRepository.findByStatus(status, pageable)
-            : projectRepository.findAll(pageable);
-        return result.map(projectMapper::toSummary);
+        return listSummary(status, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "projects", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + (#status != null ? #status.name() : 'ALL') + '-' + #pageable.sort.toString()")
+    @Cacheable(value = "projects", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' "
+        + "+ (#status != null ? #status.name() : 'ALL') + '-' + #pageable.sort.toString()")
     public Page<ProjectSummaryDto> listSummary(ProjectStatus status, Pageable pageable) {
-        if (status != null) {
-            return projectRepository.findSummaryByStatus(status, pageable);
-        }
-        return projectRepository.findAllSummary(pageable);
+        return status != null
+            ? projectRepository.findSummaryByStatus(status, pageable)
+            : projectRepository.findAllSummary(pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "projectSearch", key = "#keyword + '-' + (#status != null ? #status.name() : 'ALL') + '-' + (#domain != null ? #domain : 'ALL') + '-' + (#skill != null ? #skill : 'ALL') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
+    @Cacheable(value = "projectSearch", key = "(#keyword != null ? #keyword : '') + '-' "
+        + "+ (#status != null ? #status.name() : 'ALL') + '-' "
+        + "+ (#domain != null ? #domain : 'ALL') + '-' "
+        + "+ (#skill != null ? #skill : 'ALL') + '-' "
+        + "+ #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<ProjectSummaryDto> search(String keyword, ProjectStatus status, String domain, String skill,
                                           Pageable pageable) {
         return projectRepository.searchSummary(normalize(keyword), status, normalize(domain), normalize(skill), pageable);
@@ -180,7 +181,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProjectSummaryDto> my(UUID ownerId, Pageable pageable) {
-        return projectRepository.findByOwnerId(ownerId, pageable).map(projectMapper::toSummary);
+        return projectRepository.findAllSummaryByOwnerId(ownerId, pageable);
     }
 
     private Set<ResearchDomain> resolveDomains(Set<UUID> domainIds) {

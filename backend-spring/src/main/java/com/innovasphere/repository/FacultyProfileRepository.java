@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface FacultyProfileRepository extends JpaRepository<FacultyProfile, UUID> {
 
-    @EntityGraph(attributePaths = {"user", "researchDomains"})
+    @EntityGraph(attributePaths = {"user"})
     @Override
     Page<FacultyProfile> findAll(Pageable pageable);
 
@@ -23,16 +23,16 @@ public interface FacultyProfileRepository extends JpaRepository<FacultyProfile, 
 
     boolean existsByResearchDomains_Id(UUID researchDomainId);
 
-    @EntityGraph(attributePaths = {"user", "researchDomains"})
+    @EntityGraph(attributePaths = {"user"})
     Page<FacultyProfile> findByExpertiseContainingIgnoreCase(String keyword, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "researchDomains"})
+    @EntityGraph(attributePaths = {"user"})
     Page<FacultyProfile> findByDepartmentContainingIgnoreCase(String department, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "researchDomains"})
+    @EntityGraph(attributePaths = {"user"})
     Page<FacultyProfile> findDistinctByResearchDomains_NameContainingIgnoreCase(String keyword, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user", "researchDomains"})
+    @EntityGraph(attributePaths = {"user"})
     @Query("""
         select distinct f from FacultyProfile f
         where (:keyword is null

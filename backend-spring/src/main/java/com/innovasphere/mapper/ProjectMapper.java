@@ -2,6 +2,7 @@ package com.innovasphere.mapper;
 
 import com.innovasphere.dto.ProjectDto;
 import com.innovasphere.dto.ProjectSummaryDto;
+import com.innovasphere.dto.SkillDto;
 import com.innovasphere.entity.Project;
 import com.innovasphere.entity.ProjectSkill;
 import java.util.LinkedHashSet;
@@ -24,6 +25,13 @@ public class ProjectMapper {
         this.userMapper = userMapper;
     }
 
+    /**
+     * Maps an entity to the lightweight browse/search DTO.
+     *
+     * <p>The paginated read path does not use this method - it uses the constructor
+     * projection in {@code ProjectRepository} so pagination stays in SQL. This
+     * mapper remains for the single-entity paths.
+     */
     public ProjectSummaryDto toSummary(Project project) {
         if (project == null) {
             return null;
@@ -38,6 +46,8 @@ public class ProjectMapper {
                 ? project.getOwner().getFullName()
                 : null;
 
+        int teamCount = project.getTeams() == null ? 0 : project.getTeams().size();
+
         return new ProjectSummaryDto(
                 project.getId(),
                 project.getTitle(),
@@ -45,8 +55,8 @@ public class ProjectMapper {
                 project.getStatus(),
                 domain,
                 mentorName,
-                project.getTeams() == null ? 0 : project.getTeams().size(),
-                project.getTeams() == null ? 0 : project.getTeams().size(),
+                teamCount,
+                teamCount,
                 project.getCreatedAt());
     }
 
@@ -71,8 +81,8 @@ public class ProjectMapper {
                 project.getUpdatedAt());
     }
 
-    private Set<com.innovasphere.dto.SkillDto> toSkillDtos(Set<ProjectSkill> projectSkills) {
-        Set<com.innovasphere.dto.SkillDto> result = new LinkedHashSet<>();
+    private Set<SkillDto> toSkillDtos(Set<ProjectSkill> projectSkills) {
+        Set<SkillDto> result = new LinkedHashSet<>();
 
         if (projectSkills != null) {
             for (ProjectSkill projectSkill : projectSkills) {

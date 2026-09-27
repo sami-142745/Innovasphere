@@ -72,6 +72,11 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean active = true;
 
+    // These inverse one-to-one associations (mappedBy) are only truly lazy when
+    // Hibernate bytecode enhancement is active; without it Hibernate cannot create
+    // a proxy and resolves each one with an existence query per loaded User, which
+    // turns every page of users (e.g. the mentor directory) into an N+1.
+    // Enabled by hibernate-enhance-maven-plugin in the build.
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
     private StudentProfile studentProfile;
 

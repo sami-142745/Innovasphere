@@ -1,5 +1,6 @@
 package com.innovasphere.service;
 
+import com.innovasphere.config.CacheConfig;
 import com.innovasphere.dto.ResearchDomainCreateRequest;
 import com.innovasphere.dto.ResearchDomainDto;
 import com.innovasphere.entity.ResearchDomain;
@@ -11,6 +12,8 @@ import com.innovasphere.repository.ResearchDomainRepository;
 import com.innovasphere.repository.StudentProfileRepository;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -38,25 +41,33 @@ public class ResearchDomainService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DOMAINS, key = "'list'")
     public List<ResearchDomainDto> list() {
-        return researchDomainRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
-            .map(researchDomainMapper::toDto)
-            .toList();
+        return load(null);
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DOMAINS, key = "'search:' + (#keyword == null ? '' : #keyword.trim().toLowerCase())")
     public List<ResearchDomainDto> search(String keyword) {
+        return load(keyword);
+    }
+
+    /**
+     * Both cached entry points delegate here so the query itself lives in a single
+     * place, and so a self-invocation can never bypass the proxy-managed cache.
+     */
+    private List<ResearchDomainDto> load(String keyword) {
         String normalized = keyword != null ? keyword.trim() : null;
-        if (normalized == null || normalized.isEmpty()) {
-            return list();
-        }
-        return researchDomainRepository
-            .findByNameContainingIgnoreCase(normalized, Sort.by(Sort.Direction.ASC, "name")).stream()
+        return (normalized == null || normalized.isEmpty()
+                ? researchDomainRepository.findAll(Sort.by(Sort.Direction.ASC, "name"))
+                : researchDomainRepository.findByNameContainingIgnoreCase(normalized, Sort.by(Sort.Direction.ASC, "name")))
+            .stream()
             .map(researchDomainMapper::toDto)
             .toList();
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.DOMAINS, allEntries = true)
     public ResearchDomainDto create(ResearchDomainCreateRequest request) {
         String name = request.name().trim();
         if (researchDomainRepository.existsByNameIgnoreCase(name)) {
@@ -71,6 +82,7 @@ public class ResearchDomainService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.DOMAINS, allEntries = true)
     public void delete(UUID domainId) {
         ResearchDomain domain = researchDomainRepository.findById(domainId)
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "RESEARCH_DOMAIN_NOT_FOUND",

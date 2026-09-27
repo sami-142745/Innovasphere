@@ -1,0 +1,24 @@
+# Build output - the image builds from source, never from a local target/.
+target/
+
+# Local logs and scratch output
+*.log
+cp.txt
+
+# Local secrets and environment overrides
+.env
+.env.*
+*.local
+
+# Tooling / IDE metadata
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# VCS metadata
+.git/
+.gitignore
+.github/

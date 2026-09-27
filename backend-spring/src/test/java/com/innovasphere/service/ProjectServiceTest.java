@@ -244,17 +244,17 @@ class ProjectServiceTest {
 
     @Test
     void listWithoutStatusUsesFindAll() {
-        when(projectRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(java.util.List.of()));
+        when(projectRepository.findAllSummary(any(Pageable.class))).thenReturn(new PageImpl<>(java.util.List.of()));
         projectService.list(null, PageRequest.of(0, 20));
-        verify(projectRepository).findAll(any(Pageable.class));
+        verify(projectRepository).findAllSummary(PageRequest.of(0, 20));
     }
 
     @Test
     void listWithStatusFilters() {
-        when(projectRepository.findByStatus(eq(ProjectStatus.LOOKING_FOR_TEAM), any(Pageable.class)))
+        when(projectRepository.findSummaryByStatus(eq(ProjectStatus.LOOKING_FOR_TEAM), any(Pageable.class)))
             .thenReturn(new PageImpl<>(java.util.List.of()));
         projectService.list(ProjectStatus.LOOKING_FOR_TEAM, PageRequest.of(0, 20));
-        verify(projectRepository).findByStatus(ProjectStatus.LOOKING_FOR_TEAM, PageRequest.of(0, 20));
+        verify(projectRepository).findSummaryByStatus(ProjectStatus.LOOKING_FOR_TEAM, PageRequest.of(0, 20));
     }
 
     @Test
@@ -296,12 +296,12 @@ class ProjectServiceTest {
     }
 
     @Test
-    void myCallsFindByOwnerId() {
-        when(projectRepository.findByOwnerId(any(UUID.class), any(Pageable.class)))
+    void myUsesOwnerScopedSummaryProjection() {
+        when(projectRepository.findAllSummaryByOwnerId(any(UUID.class), any(Pageable.class)))
             .thenReturn(new PageImpl<>(java.util.List.of()));
         UUID ownerId = UUID.randomUUID();
         projectService.my(ownerId, PageRequest.of(0, 20));
-        verify(projectRepository).findByOwnerId(ownerId, PageRequest.of(0, 20));
+        verify(projectRepository).findAllSummaryByOwnerId(ownerId, PageRequest.of(0, 20));
     }
 
     @Test

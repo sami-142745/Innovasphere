@@ -1,75 +1,70 @@
 package com.innovasphere.service;
 
 import com.innovasphere.enums.ProjectStatus;
-import org.springframework.cache.CacheManager;
-import org.springframework.data.domain.Pageable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+/**
+ * Warms the browse/search caches for the pages adjacent to the one a user is
+ * looking at, so paging forward feels instant.
+ *
+ * <p>Both service methods are {@code @Cacheable}, therefore the prefetch only has
+ * to invoke them - the cache write happens inside the proxied call. Nothing here
+ * builds cache keys by hand, which previously drifted away from the keys declared
+ * on {@link ProjectServiceImpl} and silently never hit the cache.
+ */
 @Service
 public class PrefetchService {
 
+    private static final Logger log = LoggerFactory.getLogger(PrefetchService.class);
+
     private final ProjectService projectService;
-    private final CacheManager cacheManager;
 
-    public PrefetchService(ProjectService projectService, CacheManager cacheManager) {
+    public PrefetchService(ProjectService projectService) {
         this.projectService = projectService;
-        this.cacheManager = cacheManager;
     }
 
+    /**
+     * Schedules the previous and next page for warming. Returns immediately.
+     */
     @Async
-    public void prefetchAdjacentPages(int currentPage, int totalPages, Pageable pageable, ProjectStatus status,
-                                      String keyword, String domain, String skill, String sort) {
+    public void prefetchAdjacentPages(int currentPage, int totalPages, Pageable pageable, boolean isSearch,
+                                      ProjectStatus status, String keyword, String domain, String skill) {
+        if (totalPages <= 0) {
+            return;
+        }
+
+        int pageSize = pageable.getPageSize();
+
         if (currentPage + 1 < totalPages) {
-            Pageable nextPageable = PageRequest.of(
-                currentPage + 1,
-                pageable.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "createdAt")
-            );
-            prefetchPage(nextPageable, status, keyword, domain, skill, sort, currentPage + 1);
+            warm(pageRequest(currentPage + 1, pageSize, pageable), isSearch, status, keyword, domain, skill);
         }
-
         if (currentPage - 1 >= 0) {
-            Pageable prevPageable = PageRequest.of(
-                Math.max(0, currentPage - 1),
-                pageable.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "createdAt")
-            );
-            prefetchPage(prevPageable, status, keyword, domain, skill, sort, currentPage - 1);
+            warm(pageRequest(currentPage - 1, pageSize, pageable), isSearch, status, keyword, domain, skill);
         }
     }
 
-    @Async
-    public void prefetchPage(Pageable pageable, ProjectStatus status, String keyword, String domain, String skill, String sort, int pageNumber) {
+    private void warm(Pageable target, boolean isSearch, ProjectStatus status,
+                      String keyword, String domain, String skill) {
         try {
-            String cacheName = (keyword != null || domain != null || skill != null) ? "projectSearch" : "projects";
-            String key = buildKey(keyword, domain, null, null, pageable, sort);
-
-            if (cacheManager.getCache(cacheName) != null && cacheManager.getCache(cacheName).get(key) != null) {
-                return; // Already cached
-            }
-
-            if (keyword != null || domain != null) {
-                projectService.search(keyword, null, domain, null, pageable);
+            if (isSearch) {
+                projectService.search(keyword, status, domain, skill, target);
             } else {
-                projectService.listSummary(null, pageable);
+                projectService.listSummary(status, target);
             }
-        } catch (Exception e) {
-            // Ignore prefetch errors
+        } catch (RuntimeException ex) {
+            // Prefetching is an optimisation: a failure must never surface to a user.
+            log.debug("Prefetch failed for page {}: {}", target.getPageNumber(), ex.toString());
         }
     }
 
-    private String buildKey(String keyword, String domain, String skill, ProjectStatus status, Pageable pageable, String sort) {
-        StringBuilder key = new StringBuilder();
-        key.append(keyword != null ? keyword : "").append("-");
-        key.append(domain != null ? domain : "").append("-");
-        key.append(skill != null ? skill : "").append("-");
-        key.append(status != null ? status.name() : "ALL").append("-");
-        key.append(pageable.getPageNumber()).append("-");
-        key.append(pageable.getPageSize()).append("-");
-        key.append(sort != null ? sort : "createdAt,desc");
-        return key.toString();
+    private static PageRequest pageRequest(int page, int pageSize, Pageable source) {
+        // Never reuse Pageable#withSort here: it silently returns a PlainPageable
+        // that ignores both unpaged and paged sort specifications.
+        return PageRequest.of(page, pageSize, source.getSort());
     }
 }

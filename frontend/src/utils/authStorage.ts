@@ -6,7 +6,7 @@ import { AUTH_STORAGE_KEY, TOKEN_KEY } from '../utils/constants';
  */
 export function getToken(): string | null {
   try {
-    const raw = localStorage.getItem('innovasphere.auth');
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as { token?: string };
       if (parsed.token) return parsed.token;
@@ -14,7 +14,7 @@ export function getToken(): string | null {
   } catch {
     // Ignore malformed JSON
   }
-  return localStorage.getItem('innovasphere.token');
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 /**
@@ -27,14 +27,14 @@ export function persistAuth(auth: { token: string; user: unknown; expiresIn: num
     user: auth.user,
     expiresIn: auth.expiresIn,
   };
-  localStorage.setItem('innovasphere.auth', JSON.stringify(stored));
-  localStorage.setItem('innovasphere.token', auth.token);
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(stored));
+  localStorage.setItem(TOKEN_KEY, auth.token);
 }
 
 /**
  * Clear all authentication data from localStorage.
  */
 export function clearAuth(): void {
-  localStorage.removeItem('innovasphere.auth');
-  localStorage.removeItem('innovasphere.token');
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(TOKEN_KEY);
 }

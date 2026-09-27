@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Filter, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FilterChips } from '../../components/shared/FilterChips';
@@ -7,14 +7,21 @@ import { SortSelect } from '../../components/shared/SortSelect';
 import { EmptyState, ErrorState, GridSkeleton, Input, Pagination, SearchInput } from '../../components/ui';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useUrlState } from '../../hooks/useUrlState';
-import { projectService } from '../../services/projects';
+import { projectRequestKey, projectService } from '../../services/projects';
 import { extractApiError } from '../../api/client';
-import type { Page, ProjectStatus, ProjectSummaryDto } from '../../types';
-import { DEFAULT_PAGE_SIZE, PROJECT_SORT_OPTIONS, PROJECT_STATUSES } from '../../utils/constants';
+import type { ProjectStatus, ProjectSummaryDto } from '../../types';
+import { PROJECT_DIRECTORY_PAGE_SIZE, PROJECT_SORT_OPTIONS, PROJECT_STATUSES } from '../../utils/constants';
 import { getProjectCache, setProjectCache } from '../../utils/projectCache';
+import { releaseRequest } from '../../utils/requestManager';
 
 const STATUS_OPTIONS = [{ value: '', label: 'All' }, ...PROJECT_STATUSES];
 const SORT_OPTIONS = PROJECT_SORT_OPTIONS.map((o) => ({ value: o.value, label: o.label }));
+
+/** Axios v1 signals cancellation as `CanceledError`; fetch-style aborts use DOMException. */
+function isAbortError(err: unknown): boolean {
+  if (err instanceof DOMException && err.name === 'AbortError') return true;
+  return typeof err === 'object' && err !== null && (err as { name?: string }).name === 'CanceledError';
+}
 
 export default function Directory() {
   const [keyword, setKeyword] = useUrlState('q');
@@ -23,6 +30,7 @@ export default function Directory() {
   const [domain, setDomain] = useState('');
   const [skill, setSkill] = useState('');
   const [sort, setSort] = useState<string>(SORT_OPTIONS[0].value);
+  const [reloadNonce, setReloadNonce] = useState(0);
   const debouncedKeyword = useDebounce(keyword, 400);
 
   const pageNumber = Math.max(0, Number(page) || 0);
@@ -33,8 +41,14 @@ export default function Directory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const requestIdRef = useRef(0);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // Survives unmount so a settled request never calls setState on a dead tree.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const resetPage = () => {
     if (page && page !== '0') setPage('0');
@@ -65,37 +79,46 @@ export default function Directory() {
     resetPage();
   };
 
-  const reload = () => {
-    requestIdRef.current += 1;
-  };
+  const reload = () => setReloadNonce((n) => n + 1);
 
-  const hasFilters = useMemo(() => 
-    debouncedKeyword || domain.trim() || skill.trim() || status, 
+  const hasFilters = useMemo(
+    () => Boolean(debouncedKeyword || domain.trim() || skill.trim() || status),
     [debouncedKeyword, domain, skill, status]
   );
 
-  const listQuery = useMemo(() => ({
-    page: pageNumber,
-    size: DEFAULT_PAGE_SIZE,
-    sort,
-    status: status as ProjectStatus | undefined,
-  }), [pageNumber, sort, status]);
+  const listQuery = useMemo(
+    () => ({
+      page: pageNumber,
+      size: PROJECT_DIRECTORY_PAGE_SIZE,
+      sort,
+      status: status as ProjectStatus | undefined,
+    }),
+    [pageNumber, sort, status]
+  );
 
-  const searchQuery = useMemo(() => ({
-    page: pageNumber,
-    size: DEFAULT_PAGE_SIZE,
-    sort,
-    keyword: debouncedKeyword || undefined,
-    domain: domain.trim() || undefined,
-    skill: skill.trim() || undefined,
-    status: status as ProjectStatus | undefined,
-  }), [pageNumber, debouncedKeyword, domain, skill, status, sort]);
+  const searchQuery = useMemo(
+    () => ({
+      page: pageNumber,
+      size: PROJECT_DIRECTORY_PAGE_SIZE,
+      sort,
+      keyword: debouncedKeyword || undefined,
+      domain: domain.trim() || undefined,
+      skill: skill.trim() || undefined,
+      status: status as ProjectStatus | undefined,
+    }),
+    [pageNumber, debouncedKeyword, domain, skill, status, sort]
+  );
 
   const currentQuery = hasFilters ? searchQuery : listQuery;
+  const requestKey = projectRequestKey(currentQuery, hasFilters);
 
+  /**
+   * Paint whatever is already cached before touching the network. The fetch
+   * effect below still runs and revalidates in the background, so this is a
+   * stale-while-revalidate render, not a cache short-circuit.
+   */
   useEffect(() => {
     const cached = getProjectCache(currentQuery);
-
     if (!cached) return;
 
     setProjects(cached.content ?? []);
@@ -105,86 +128,69 @@ export default function Directory() {
   }, [currentQuery]);
 
   useEffect(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
+    const cached = getProjectCache(currentQuery);
+    let active = true;
 
-    let mounted = true;
-    const requestId = ++requestIdRef.current;
+    // Only show a blocking skeleton when there is nothing cached to paint.
+    if (!cached) setLoading(true);
+    setError(null);
 
-    async function fetchProjects() {
-      if (projects.length === 0) {
-        setLoading(true);
-      }
+    const request = hasFilters
+      ? projectService.search(searchQuery)
+      : projectService.list(listQuery);
 
-      setError(null);
-
-      try {
-        const isSearch = hasFilters;
-        const response = isSearch
-          ? await projectService.search(currentQuery, abortController.signal)
-          : await projectService.list(listQuery, abortController.signal);
-
-        if (!mounted) return;
-        if (requestId !== requestIdRef.current) return;
-
+    request
+      .then((response) => {
+        if (!active) return;
         setProjectCache(currentQuery, response);
-
         setProjects(response.content ?? []);
         setTotalPages(response.totalPages ?? 0);
         setTotalElements(response.totalElements ?? 0);
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        if (!mounted) return;
-        if (requestId !== requestIdRef.current) return;
-
-        setError(extractApiError(err));
-      } finally {
-        if (mounted && requestId === requestIdRef.current) {
-          setLoading(false);
+      })
+      .catch((err: unknown) => {
+        if (!active || isAbortError(err)) return;
+        // A failed revalidation keeps the cached grid on screen; only surface
+        // the error when there is genuinely nothing to show.
+        if (!getProjectCache(currentQuery)) {
+          setError(extractApiError(err));
         }
-      }
-    }
-
-    fetchProjects();
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
 
     return () => {
-      mounted = false;
-      abortControllerRef.current?.abort();
+      active = false;
+      releaseRequest(requestKey);
     };
-  }, [currentQuery, hasFilters, listQuery]);
+  }, [currentQuery, hasFilters, listQuery, searchQuery, reloadNonce, requestKey]);
 
+  /** Warm the neighbouring pages so Pagination feels instant. */
   useEffect(() => {
-    if (loading) return;
-    if (projects.length === 0) return;
+    if (loading || projects.length === 0) return;
 
-    const nextPage = pageNumber + 1;
-    const prevPage = pageNumber - 1;
+    const warm = (targetPage: number) => {
+      if (targetPage < 0 || targetPage >= totalPages) return;
+      const neighbour = { ...currentQuery, page: targetPage };
+      if (getProjectCache(neighbour)) return;
 
-    const baseQuery = { ...currentQuery };
+      const request = hasFilters
+        ? projectService.search({ ...searchQuery, page: targetPage })
+        : projectService.list({ ...listQuery, page: targetPage });
 
-    if (nextPage < totalPages) {
-      const nextQuery = { ...baseQuery, page: nextPage };
-      if (!getProjectCache(nextQuery)) {
-        const isSearch = hasFilters;
-        (isSearch ? projectService.search(nextQuery) : projectService.list({ ...listQuery, page: nextPage }))
-          .then(data => setProjectCache(nextQuery, data))
-          .catch(() => {});
-      }
-    }
+      request
+        .then((data) => {
+          if (!mountedRef.current) return;
+          setProjectCache(neighbour, data);
+        })
+        .catch(() => {
+          // Prefetching is best effort.
+        });
+    };
 
-    if (prevPage >= 0) {
-      const prevQuery = { ...baseQuery, page: prevPage };
-      if (!getProjectCache(prevQuery)) {
-        const isSearch = hasFilters;
-        (isSearch ? projectService.search(prevQuery) : projectService.list({ ...listQuery, page: prevPage }))
-          .then(data => setProjectCache(prevQuery, data))
-          .catch(() => {});
-      }
-    }
-  }, [currentQuery, totalPages, loading, projects.length, hasFilters, listQuery]);
+    warm(pageNumber + 1);
+    warm(pageNumber - 1);
+  }, [currentQuery, listQuery, searchQuery, totalPages, loading, projects.length, hasFilters, pageNumber]);
 
   useEffect(() => {
     if (totalPages > 0 && pageNumber >= totalPages) {
@@ -256,7 +262,7 @@ export default function Directory() {
         </p>
       )}
 
-      {loading && projects.length === 0 && <GridSkeleton count={6} />}
+      {loading && projects.length === 0 && <GridSkeleton count={PROJECT_DIRECTORY_PAGE_SIZE} />}
 
       {!loading && error && <ErrorState message={error} onRetry={reload} />}
 
@@ -284,7 +290,7 @@ export default function Directory() {
               page={pageNumber}
               totalPages={totalPages}
               totalElements={totalElements}
-              pageSize={DEFAULT_PAGE_SIZE}
+              pageSize={PROJECT_DIRECTORY_PAGE_SIZE}
               onChange={(p) => setPage(String(p))}
             />
           </div>

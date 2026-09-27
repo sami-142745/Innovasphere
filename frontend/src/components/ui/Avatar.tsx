@@ -18,7 +18,13 @@ const SIZE_CLASSES = {
 
 export function Avatar({ name, size = 'md', src, className, ring = true }: AvatarProps) {
   const img = src ? (
-    <img src={src} alt={name} className={cn('h-full w-full object-cover', className)} />
+    <img
+      src={src}
+      alt={name}
+      className={cn('h-full w-full object-cover', className)}
+      loading="lazy"
+      decoding="async"
+    />
   ) : (
     <span
       aria-hidden="true"

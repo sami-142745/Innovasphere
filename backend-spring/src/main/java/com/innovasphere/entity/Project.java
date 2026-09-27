@@ -25,6 +25,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.BatchSize;
 
+/**
+ * Physical column names are snake_case (Spring Boot's
+ * {@code CamelCaseToUnderscoresNamingStrategy}), so index {@code columnList}
+ * entries must use the physical name - {@code createdAt} does not exist as a
+ * column and would fail schema generation.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,8 +42,9 @@ import org.hibernate.annotations.BatchSize;
     indexes = {
         @Index(name = "idx_projects_status", columnList = "status"),
         @Index(name = "idx_projects_owner_id", columnList = "owner_id"),
-        @Index(name = "idx_projects_created_at", columnList = "createdAt"),
-        @Index(name = "idx_projects_status_created_at", columnList = "status, createdAt")
+        @Index(name = "idx_projects_created_at", columnList = "created_at"),
+        @Index(name = "idx_projects_status_created_at", columnList = "status, created_at"),
+        @Index(name = "idx_projects_title", columnList = "title")
     }
 )
 public class Project extends BaseEntity {

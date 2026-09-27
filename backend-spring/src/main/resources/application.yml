@@ -1,5 +1,9 @@
 server:
   port: ${PORT:8080}
+  compression:
+    enabled: true
+    mime-types: application/json,application/javascript,text/javascript,text/html,text/css,text/plain,image/svg+xml
+    min-response-size: 1024
 
 spring:
   application:
@@ -22,21 +26,46 @@ spring:
       ddl-auto: update
     open-in-view: false
     show-sql: false
-    database-platform: org.hibernate.dialect.MySQLDialect
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 100
+        one-indexed-parameters: false
+        # The frontend reads totalElements/totalPages/number/size as top-level
+        # fields, so PageImpl must be serialised directly rather than wrapped in
+        # the Spring Data "page" envelope. See also WebConfig#springDataWebSettings.
+        serialization-mode: direct
 
   devtools:
     restart:
-      enabled: true
+      enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
 
 app:
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION:604800000}
   cors:
-    allowed-origins: ${CORS_ORIGIN:http://localhost:5173}
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,https://innovasphere-4mmu.onrender.com,https://innovasphere-frontend.onrender.com}
   seed:
     enabled: ${SEED_ENABLED:false}
 
@@ -44,3 +73,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: method
+
+logging:
+  level:
+    org.hibernate.SQL: WARN
+    # PageImpl is intentionally serialised "as-is": the frontend contract relies on
+    # top-level totalElements/totalPages/number/size fields. Locking the mode makes
+    # that explicit, so the Spring Data advisory warning is muted on purpose.
+    org.springframework.data.web.PageModule$WarningLoggingModifier: ERROR

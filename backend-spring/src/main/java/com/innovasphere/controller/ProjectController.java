@@ -54,7 +54,7 @@ public class ProjectController {
             @RequestParam(required = false) ProjectStatus status,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<ProjectSummaryDto> result = projectService.listSummary(status, pageable);
-        prefetchService.prefetchAdjacentPages(pageable.getPageNumber(), result.getTotalPages(), pageable, status, null, null, null, "createdAt,desc");
+        prefetchService.prefetchAdjacentPages(pageable.getPageNumber(), result.getTotalPages(), pageable, false, status, null, null, null);
         return result;
     }
 
@@ -67,13 +67,17 @@ public class ProjectController {
 
     @GetMapping("/search")
     public Page<ProjectSummaryDto> search(
-            @RequestParam(required = false) String keyword,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "q", required = false) String q,
             @RequestParam(required = false) ProjectStatus status,
             @RequestParam(required = false) String domain,
             @RequestParam(required = false) String skill,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<ProjectSummaryDto> result = projectService.search(keyword, status, domain, null, pageable);
-        prefetchService.prefetchAdjacentPages(pageable.getPageNumber(), result.getTotalPages(), pageable, status, keyword, domain, null, "createdAt,desc");
+        // The directory keeps the search term in the `q` URL param, so accept it
+        // as an alias for `keyword` instead of silently dropping the filter.
+        String effectiveKeyword = (keyword != null && !keyword.isBlank()) ? keyword : q;
+        Page<ProjectSummaryDto> result = projectService.search(effectiveKeyword, status, domain, skill, pageable);
+        prefetchService.prefetchAdjacentPages(pageable.getPageNumber(), result.getTotalPages(), pageable, true, status, effectiveKeyword, domain, skill);
         return result;
     }
 

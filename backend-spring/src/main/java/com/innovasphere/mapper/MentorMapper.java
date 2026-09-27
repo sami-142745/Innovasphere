@@ -21,7 +21,9 @@ public class MentorMapper {
             return null;
         }
         User user = faculty.getUser();
-        Set<SkillDto> skills = java.util.Set.of();
+        // FacultyProfile has no skill collection of its own; the field is part of the
+        // shared MentorDto contract and is always empty.
+        Set<SkillDto> skills = Set.of();
         return new MentorDto(
             user.getId(),
             user.getFullName(),

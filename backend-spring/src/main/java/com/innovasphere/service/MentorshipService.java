@@ -1,5 +1,6 @@
 package com.innovasphere.service;
 
+import com.innovasphere.config.CacheConfig;
 import com.innovasphere.dto.MentorDto;
 import com.innovasphere.dto.MentorshipDecisionRequest;
 import com.innovasphere.dto.MentorshipRequestCreateRequest;
@@ -23,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -62,10 +65,10 @@ public class MentorshipService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.MENTORS,
+        key = "'list:' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<MentorDto> list(Pageable pageable) {
-        Page<FacultyProfile> page = facultyProfileRepository.findAll(pageable);
-        Map<UUID, Long> mentorshipCounts = mentorshipCounts(page.getContent());
-        return page.map(faculty -> mentorMapper.toDto(faculty, mentorshipCounts.getOrDefault(faculty.getId(), 0L)));
+        return toMentorPage(facultyProfileRepository.findAll(pageable));
     }
 
     @Transactional(readOnly = true)
@@ -75,8 +78,20 @@ public class MentorshipService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.MENTORS, key = "'search:' + (#keyword != null ? #keyword : '') + '-' "
+        + "+ (#domain != null ? #domain : '') + '-' "
+        + "+ #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort.toString()")
     public Page<MentorDto> search(String keyword, String domain, Pageable pageable) {
-        Page<FacultyProfile> page = facultyProfileRepository.search(normalize(keyword), normalize(domain), pageable);
+        return toMentorPage(
+            facultyProfileRepository.search(normalize(keyword), normalize(domain), pageable));
+    }
+
+    /**
+     * Active mentorship counts are resolved with a single grouped query for the whole
+     * page, which keeps the mentor directory at one query per collection instead of
+     * one per row.
+     */
+    private Page<MentorDto> toMentorPage(Page<FacultyProfile> page) {
         Map<UUID, Long> mentorshipCounts = mentorshipCounts(page.getContent());
         return page.map(faculty -> mentorMapper.toDto(faculty, mentorshipCounts.getOrDefault(faculty.getId(), 0L)));
     }
@@ -157,6 +172,7 @@ public class MentorshipService {
     }
 
     @Transactional
+    @CacheEvict(value = CacheConfig.MENTORS, allEntries = true)
     public MentorshipRequestDto decide(User facultyUser, UUID requestId, MentorshipDecisionRequest decision) {
         MentorshipRequest mentorshipRequest = mentorshipRequestRepository.findById(requestId)
             .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MENTORSHIP_REQUEST_NOT_FOUND",

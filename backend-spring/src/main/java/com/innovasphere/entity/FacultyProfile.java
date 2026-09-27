@@ -19,6 +19,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 @Getter
 @Setter
@@ -61,6 +62,7 @@ public class FacultyProfile extends BaseEntity {
         joinColumns = @JoinColumn(name = "faculty_profile_id"),
         inverseJoinColumns = @JoinColumn(name = "research_domain_id")
     )
+    @BatchSize(size = 50)
     @Builder.Default
     private Set<ResearchDomain> researchDomains = new HashSet<>();
 

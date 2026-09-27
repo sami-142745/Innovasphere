@@ -1,7 +1,6 @@
-import axios, { AxiosError, type AxiosInstance } from "axios";
+import axios, { type AxiosError } from "axios";
 import type { ApiErrorResponse } from "../types";
-import { AUTH_STORAGE_KEY, TOKEN_KEY } from "../utils/constants";
-import { getToken, clearAuth } from "../utils/authStorage";
+import { clearAuth, getToken } from "../utils/authStorage";
 
 const RAW_API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ??
@@ -27,36 +26,9 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = getTokenFromStorage();
+  const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    if (import.meta.env.DEV) {
-      console.info("[AUTH] Bearer token attached to", config.method?.toUpperCase(), config.url);
-    }
-  }
-  return config;
-});
-
-function getTokenFromStorage(): string | null {
-  try {
-    const raw = localStorage.getItem("innovasphere.auth");
-    if (raw) {
-      const parsed = JSON.parse(raw) as { token?: string };
-      if (parsed.token) return parsed.token;
-    }
-  } catch {
-    // Ignore malformed localStorage
-  }
-  return localStorage.getItem("innovasphere.token");
-}
-
-api.interceptors.request.use((config) => {
-  const token = getTokenFromStorage();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    if (import.meta.env.DEV) {
-      console.info("[AUTH] Bearer token attached to", config.method?.toUpperCase(), config.url);
-    }
   }
   return config;
 });
@@ -66,11 +38,10 @@ api.interceptors.response.use(
   (error: AxiosError<ApiErrorResponse>) => {
     if (error.response) {
       const status = error.response.status;
-      const url = error.config?.url ?? "unknown";
 
       if (status === 401) {
-        localStorage.removeItem("innovasphere.auth");
-        localStorage.removeItem("innovasphere.token");
+        clearAuth();
+        unauthorizedHandler?.();
       }
 
       const enhancedError = error as AxiosError<ApiErrorResponse> & { status: number };

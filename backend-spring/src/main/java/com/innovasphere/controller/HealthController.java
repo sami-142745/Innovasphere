@@ -25,7 +25,7 @@ public class HealthController {
         return Map.of(
                 "status", "UP",
                 "service", "innovasphere-backend",
-                "version", "1.0.0",
+                "version", "1.1.0",
                 "runtime", "Spring Boot"
         );
     }
