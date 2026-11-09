@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   FlaskConical,
@@ -18,7 +17,7 @@ import {
 } from 'lucide-react';
 import { projectService } from '../../services/projects';
 import { setProjectCache, getCacheKey, getProjectCache } from '../../utils/projectCache';
-import { DEFAULT_PAGE_SIZE } from '../../utils/constants';
+import { ButtonLink } from '../../components/ui/Button';
 
 const FEATURES = [
   {
@@ -128,17 +127,13 @@ export default function Landing() {
             </p>
 
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link to="/browse">
-                <button className="gradient-animated group inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-7 text-base font-medium text-white shadow-[0_14px_36px_-10px_rgb(109_94_245/0.65)] transition sm:w-auto">
-                  Browse projects
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                </button>
-              </Link>
-              <Link to="/register">
-                <button className="glass inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-7 text-base font-medium text-slate-800 transition hover:border-brand-300 sm:w-auto dark:text-slate-100 dark:hover:border-brand-400/40">
-                  Create an account
-                </button>
-              </Link>
+              <ButtonLink variant="gradient" size="lg" to="/browse" className="group w-full sm:w-auto">
+                Browse projects
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </ButtonLink>
+              <ButtonLink variant="outline" size="lg" to="/register" className="w-full sm:w-auto">
+                Create an account
+              </ButtonLink>
             </div>
 
             <motion.div
@@ -312,13 +307,11 @@ export default function Landing() {
             <p className="mx-auto mt-4 max-w-xl text-sm text-white/90">
               Create a free account to publish a project, join a team and connect with faculty mentors.
             </p>
-            <Link to="/register">
-              <button className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-8 text-base font-semibold text-brand-700 shadow-card transition-transform hover:scale-[1.03]">
-                <Rocket className="h-4 w-4" aria-hidden="true" />
-                Get started free
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </Link>
+            <ButtonLink variant="light" size="lg" to="/register" className="mt-8">
+              <Rocket className="h-4 w-4" aria-hidden="true" />
+              Get started free
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </ButtonLink>
           </div>
         </motion.div>
       </section>

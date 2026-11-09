@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { Sparkles, Users, GitMerge, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GitMerge, Moon, ShieldCheck, Sparkles, Sun, Users } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 import { Logo } from '../layout/Logo';
 import { cn } from '../../utils/cn';
 
@@ -17,6 +19,8 @@ const PANEL_POINTS = [
 ];
 
 export function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 dark:bg-deep-950 lg:flex-row">
       <div className="bg-grid pointer-events-none absolute inset-0 opacity-40 dark:opacity-20" aria-hidden="true" />
@@ -62,9 +66,24 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
       </aside>
 
       <div className="relative flex flex-1 flex-col">
-        <header className="relative flex h-16 items-center justify-between px-5 sm:px-8 lg:h-20">
+        <header className="relative flex h-16 items-center justify-between gap-3 px-5 sm:px-8 lg:h-20">
           <Logo className="lg:hidden" />
-          <div className="ml-auto" />
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              to="/"
+              className="focus-ring rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-300"
+            >
+              Back to home
+            </Link>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="glass-chip focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
+            </button>
+          </div>
         </header>
         <main className="relative flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
           <div className="w-full max-w-md">

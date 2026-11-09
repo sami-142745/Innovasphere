@@ -20,7 +20,7 @@ export function GlassCard({ className, interactive = false, ...props }: HTMLAttr
       className={cn(
         'glass-panel rounded-panel',
         interactive &&
-          'transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-soft dark:hover:border-white/16',
+          'transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-soft dark:hover:border-white/20',
         className
       )}
       {...props}

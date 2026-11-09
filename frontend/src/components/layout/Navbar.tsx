@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Logo } from './Logo';
-import { Button } from '../ui/Button';
+import { ButtonLink } from '../ui/Button';
 import { cn } from '../../utils/cn';
 
 const NAV_LINKS = [
@@ -54,19 +54,13 @@ export function Navbar() {
           </button>
 
           {isAuthenticated ? (
-            <Link to="/dashboard">
-              <Button>Dashboard</Button>
-            </Link>
+            <ButtonLink to="/dashboard">Dashboard</ButtonLink>
           ) : (
             <div className="hidden items-center gap-2 md:flex">
-              <Link to="/login">
-                <Button variant="ghost">Log in</Button>
-              </Link>
-              <Link to="/register">
-                <Button variant="gradient">
-                  <Rocket className="h-4 w-4" aria-hidden="true" /> Get started
-                </Button>
-              </Link>
+              <ButtonLink variant="ghost" to="/login">Log in</ButtonLink>
+              <ButtonLink variant="gradient" to="/register">
+                <Rocket className="h-4 w-4" aria-hidden="true" /> Get started
+              </ButtonLink>
             </div>
           )}
 
@@ -97,27 +91,23 @@ export function Navbar() {
                   key={link.to}
                   to={link.to}
                   onClick={() => setOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/5"
+                  className="focus-ring rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-900/5 dark:text-slate-200 dark:hover:bg-white/5"
                 >
                   {link.label}
                 </Link>
               ))}
               {isAuthenticated ? (
-                <Link to="/dashboard" onClick={() => setOpen(false)}>
-                  <Button fullWidth>Dashboard</Button>
-                </Link>
+                <ButtonLink fullWidth to="/dashboard" onClick={() => setOpen(false)}>
+                  Dashboard
+                </ButtonLink>
               ) : (
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  <Link to="/login" onClick={() => setOpen(false)}>
-                    <Button variant="outline" fullWidth>
-                      Log in
-                    </Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setOpen(false)}>
-                    <Button variant="gradient" fullWidth>
-                      Get started
-                    </Button>
-                  </Link>
+                  <ButtonLink variant="outline" fullWidth to="/login" onClick={() => setOpen(false)}>
+                    Log in
+                  </ButtonLink>
+                  <ButtonLink variant="gradient" fullWidth to="/register" onClick={() => setOpen(false)}>
+                    Get started
+                  </ButtonLink>
                 </div>
               )}
             </div>
