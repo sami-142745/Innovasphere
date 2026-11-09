@@ -1,40 +1,33 @@
-# Project Nexus - Implementation Checklist
+# Innovasphere - Implementation Checklist
 
-## Scaffold
-- [x] Create monorepo folder structure: `project_nexus/frontend`, `project_nexus/backend`, `project_nexus/docs`
-- [ ] Add root README with local dev & deployment steps
+## Current stack
+- [x] React 18 + Vite + TypeScript frontend (`frontend/`)
+- [x] Spring Boot 3.5 / Java 21 API (`backend-spring/`)
+- [x] MySQL 8 + JWT authentication
+- [x] Docker Compose local stack
+- [x] Backend + frontend test suites
 
-## Backend (Node/Express/PostgreSQL)
-- [ ] Create backend package.json + tsconfig + folder structure
-- [ ] Add PostgreSQL schema (users, projects, categories, orders, payments, referrals, reviews, custom_requests, notifications, messages)
-- [ ] Add DB connection + migrations/seed
-- [ ] Add auth (JWT + bcrypt), RBAC middleware
-- [ ] Add email verification + forgot/reset password endpoints (email service stub)
-- [ ] Add Cloudinary upload stub for deliverables/requirements
-- [ ] Add Razorpay integration stubs (create order, verify payment)
-- [ ] Add referrals + coupon logic
-- [ ] Add order status state machine & endpoints
-- [ ] Add admin endpoints (manage projects/orders/referrals/payments/reviews)
-- [ ] Add rate limiting + request validation
+## Repository hardening (Stage 2)
+- [x] Align Docker Compose env vars, ports and health checks
+- [x] Add a dedicated MySQL application user (no root)
+- [x] Add `docker-compose.prod.yml` (MySQL + API + Cloudflare Tunnel)
+- [x] Add Oracle production env template (`deploy/oracle/.env.example`)
+- [x] Add Cloudflare Pages SPA fallback (`frontend/public/_redirects`)
+- [x] Remove `login.json` from Git tracking
+- [ ] Rotate the account password exposed by `login.json`
+- [x] Update deployment documentation and templates
 
-## Frontend (React/Tailwind/Framer Motion/Axios)
-- [ ] Create frontend package.json + Vite + Tailwind + TS
-- [ ] Implement SaaS landing page with animations
-- [ ] Implement auth flows (login/signup/verify/forgot/reset)
-- [ ] Implement marketplace pages (search, filters, project detail)
-- [ ] Implement student dashboard (orders/progress/downloads/chat stub)
-- [ ] Implement admin dashboard + analytics charts (stub)
-- [ ] Implement dark/light mode + glassmorphism UI components
+## Production migration (pending approval)
+- [ ] Provision Oracle Cloud Always Free VM (Ampere A1, 2 OCPU / 12 GB, Ubuntu 24.04)
+- [ ] Create Cloudflare Tunnel and `api.<domain>` public hostname
+- [ ] Export Railway MySQL data (dashboard preferred; CLI fallback)
+- [ ] Import data into the Oracle MySQL container and verify
+- [ ] Deploy `docker-compose.prod.yml`
+- [ ] Deploy frontend to Cloudflare Pages with `VITE_API_URL`
+- [ ] Validate login, browsing, teams, mentorships, notifications and admin
+- [ ] Configure backups and monitoring
+- [ ] Decommission Railway only after explicit approval
 
-## Infra/Deployment
-- [ ] Provide `.env.example` files for backend/frontend
-- [ ] Provide Render (backend) + Vercel (frontend) deployment guide
-
-## Sample Data & ERD
-- [ ] Seed categories + sample projects + admin bootstrap
-- [ ] Add ER diagram (docs)
-
-## Testing
-- [ ] Backend smoke test: auth → marketplace → order create stub
-- [ ] Frontend smoke test: UI navigation
-
+## Legacy / cleanup
+- [ ] Decide whether to archive `backend/` (Node/Express/PostgreSQL prototype)
+- [ ] Remove `render.yaml` / `vercel.json` after cutover if no longer needed

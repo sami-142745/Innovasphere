@@ -63,7 +63,7 @@ React SPA (Vite) ──JSON/HTTPS──▶ Spring Boot 3 (Java 21) ──▶ JPA
 - **Frontend:** React 18 + TypeScript, Vite, Tailwind CSS, Framer Motion, Axios, react-router.
 - **Backend:** Spring Boot 3.5, Spring Security, Spring Data JPA, Bean Validation, springdoc OpenAPI.
 - **Database:** MySQL 8 — 15 entities, `ddl-auto` schema management.
-- **Deployment:** Docker Compose, Render (backend), Vercel (frontend).
+- **Deployment:** Docker Compose (local), Oracle Cloud Always Free VM + Cloudflare Tunnel (API), Cloudflare Pages (frontend).
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/ERD.md`](docs/ERD.md) and
 [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) for full diagrams and API details.
@@ -77,7 +77,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/ERD.md`](docs/ERD.md)
 | Persistence| MySQL 8 · Hibernate 6 · JPA |
 | Security   | JWT (jjwt 0.12) · BCrypt(12) |
 | Testing    | JUnit 5 · Mockito · spring-security-test · Vitest · Testing Library · MSW |
-| Tooling    | Maven wrapper · Docker Compose · Render / Vercel |
+| Tooling    | Maven wrapper · Docker Compose · Oracle Cloud · Cloudflare Tunnel / Pages |
 
 ## 📁 Folder structure
 
@@ -96,9 +96,9 @@ project_nexus/
 │   │   ├── security/       # JwtService, filters, login
 │   │   └── service/        # Business logic
 │   ├── src/main/resources/ # application.yml, application-dev.yml, application-prod.yml
-│   ├── src/test/           # 218 integration + unit tests
+│   ├── src/test/           # 219 integration + unit tests
 │   ├── Dockerfile
-│   ├── render.yaml
+│   ├── render.yaml         # legacy; retained until cutover
 │   └── .env.example
 ├── frontend/                # React SPA
 │   ├── src/
@@ -109,10 +109,14 @@ project_nexus/
 │   │   ├── pages/          # Lazy-loaded route pages
 │   │   ├── services/       # Typed API service modules
 │   │   └── utils/          # constants, format, cn
+│   ├── public/_redirects   # Cloudflare Pages SPA fallback
 │   ├── Dockerfile, nginx.conf, vercel.json
 │   └── vite.config.ts
+├── deploy/oracle/           # Oracle production environment template
 ├── docs/                    # API_REFERENCE, ERD, ARCHITECTURE, DEPLOYMENT
-└── docker-compose.yml       # mysql + backend + frontend
+├── docker-compose.yml       # local: mysql + backend + frontend
+├── docker-compose.prod.yml  # Oracle: mysql + backend + cloudflared
+└── .env.example             # local compose environment template
 ```
 
 ## 🚀 Getting started
@@ -124,11 +128,11 @@ project_nexus/
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS innovasphere;"
 ```
 
-Or simply run the bundled MySQUL container:
+Or simply run the bundled MySQL container:
 
 ```bash
 docker run --name innovasphere-mysql -e MYSQL_ROOT_PASSWORD=<pass> \
-  -e MYSQL_DATABASE=innovasphere -p 3306:3306 -d mysql:8.4
+  -e MYSQL_DATABASE=innovasphere -p 3306:3306 -d mysql:8.0
 ```
 
 ### 2. Backend setup
@@ -156,7 +160,7 @@ npm run dev        # http://localhost:5173
 ### 4. Docker (single command)
 
 ```bash
-cp backend-spring/.env.example .env   # fill in values
+cp .env.example .env   # fill in values
 docker compose up -d --build
 ```
 
@@ -164,23 +168,28 @@ docker compose up -d --build
 
 | Variable | Purpose |
 | -------- | ------- |
-| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` | Database connection |
+| `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` | Database connection (preferred) |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD` | Database connection fallback / MySQL container init |
+| `MYSQL_ROOT_PASSWORD` | MySQL root password (Docker Compose only) |
 | `JWT_SECRET`, `JWT_EXPIRATION` | Auth signing + lifetime |
-| `FRONTEND_URL` | CORS origin |
+| `APP_CORS_ALLOWED_ORIGINS` | Comma-separated exact browser origins |
 | `PORT`, `SPRING_PROFILES_ACTIVE` | Server port + profile (`dev`/`prod`) |
-| `SEED_ENABLED` | Populate demo data on empty DB |
-| `VITE_API_URL` | Frontend API base URL |
+| `SEED_ENABLED` | Populate demo data; dev/host profiles only (prod forces off) |
+| `VITE_API_URL` | Frontend API base URL (build time) |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Oracle production Cloudflare Tunnel token |
 
-Copy `backend-spring/.env.example` → your environment. Templates contain **no secrets**.
+Use the root `.env.example` for Docker Compose, `deploy/oracle/.env.example` for
+the Oracle VM, or `backend-spring/.env.example` for a direct backend run.
+Templates contain **no secrets**.
 
 ## 🧪 Testing
 
 ```bash
-# Backend — 218 tests (isolated test DB, `innovasphere_test`)
+# Backend — 219 tests (embedded H2 in MySQL mode; no external DB needed)
 cd backend-spring
 ./mvnw test
 
-# Frontend — 32 tests
+# Frontend — 33 tests
 cd frontend
 npm test
 ```
@@ -203,13 +212,17 @@ idempotent — safe to restart with.
 - [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md) — every endpoint, with requests/responses/status codes
 - [`docs/ERD.md`](docs/ERD.md) — Mermaid entity-relationship diagram (15 entities)
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system, JWT, recommendation & notification flows
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — local, Docker, Render, Vercel, troubleshooting
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — local, Docker, Oracle Cloud, Cloudflare Pages, data migration, troubleshooting
 
 ## ☁️ Deployment guide
 
-- **Docker:** `docker compose up -d --build` — MySQL + backend + frontend(nginx).
-- **Render (API):** import `backend-spring/render.yaml` → set env vars → health check `/api/health`.
-- **Vercel (UI):** import `frontend/` → set `VITE_API_URL` → SPA rewrites via `vercel.json`.
+- **Local Docker:** `docker compose up -d --build` — MySQL + backend + frontend (nginx).
+- **Production API:** Oracle Cloud Always Free VM (Ampere A1) running `docker-compose.prod.yml` with a Cloudflare Tunnel; health check `/healthz`.
+- **Production UI:** Cloudflare Pages (root `frontend/`) with `VITE_API_URL` and `frontend/public/_redirects`.
+- **Data migration:** export from the Railway dashboard (preferred), import with `mysqldump`; Railway stays untouched until cutover.
+
+`backend-spring/render.yaml` and `frontend/vercel.json` are retained for now and
+are not used by the Oracle/Cloudflare deployment.
 
 Full step-by-step instructions in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 

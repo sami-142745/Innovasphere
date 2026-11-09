@@ -5,7 +5,7 @@ import type { ProjectSummaryDto } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Avatar } from '../ui/Avatar';
 import { cn } from '../../utils/cn';
-import { coverGradient, formatDate, projectStatusLabel, projectStatusTone } from '../../utils/format';
+import { coverGradient, formatDate, formatTeamSize, projectStatusLabel, projectStatusTone } from '../../utils/format';
 
 export const ProjectCard = memo(function ProjectCard({ project, matchScore }: { project: ProjectSummaryDto; matchScore?: number }) {
   const tone = projectStatusTone(project.status);
@@ -60,7 +60,7 @@ export const ProjectCard = memo(function ProjectCard({ project, matchScore }: { 
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-white/[0.06] dark:text-slate-300">
               <Users className="h-3.5 w-3.5" aria-hidden="true" />
-              {project.teamSize}/{project.maxTeamSize}
+              {formatTeamSize(project.teamSize, project.maxTeamSize)}
             </span>
             <ArrowRight className="h-4 w-4 -translate-x-1 text-brand-500 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" aria-hidden="true" />
           </div>

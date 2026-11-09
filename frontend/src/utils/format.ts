@@ -44,6 +44,10 @@ export function timeAgo(value?: string | null): string {
   return `${Math.max(seconds, 1)} sec${seconds === 1 ? '' : 's'} ago`;
 }
 
+export function formatTeamSize(current: number, max?: number | null): string {
+  return max != null && max > 0 ? `${current}/${max}` : `${current}`;
+}
+
 export function initials(name: string): string {
   return name
     .split(/\s+/)

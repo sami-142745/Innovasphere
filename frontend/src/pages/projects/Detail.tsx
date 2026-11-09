@@ -11,7 +11,7 @@ import { projectService } from '../../services/projects';
 import { teamService } from '../../services/teams';
 import type { JoinRequestDto, ProjectDto, RequestStatus, TeamDto } from '../../types';
 import { cn } from '../../utils/cn';
-import { coverGradient, formatDate, projectStatusLabel, projectStatusStroke, projectStatusTone, requestStatusClasses, requestStatusLabel, timeAgo } from '../../utils/format';
+import { coverGradient, formatDate, formatTeamSize, projectStatusLabel, projectStatusStroke, projectStatusTone, requestStatusClasses, requestStatusLabel, timeAgo } from '../../utils/format';
 
 export default function Detail() {
   const { id } = useParams<{ id: string }>();
@@ -104,7 +104,7 @@ export default function Detail() {
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                   <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                  {project.memberCount ?? 0}/{project.teamSize} members
+                  {formatTeamSize(project.memberCount ?? 0, project.teamSize)} members
                 </span>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function Detail() {
                     Delete
                   </Button>
                 </>
-              ) : isStudent ? (
+              ) : isStudent && project.status !== 'COMPLETED' ? (
                 <Button variant="gradient" onClick={() => setJoinModalOpen(true)}>
                   Request to join
                 </Button>

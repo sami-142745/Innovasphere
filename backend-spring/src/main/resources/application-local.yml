@@ -21,6 +21,11 @@ spring:
       pool-name: InnovasphereHikariPool
 
   jpa:
+    # MySQL is the only database this profile targets. Declaring the dialect
+    # explicitly stops Hibernate from needing JDBC metadata just to build the
+    # EntityManagerFactory, so an unreachable/misconfigured datasource surfaces
+    # as a real connection error instead of "Unable to determine Dialect".
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
     open-in-view: false

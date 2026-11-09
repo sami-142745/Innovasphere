@@ -22,7 +22,7 @@ public class CorsConfig {
      * {@code APP_CORS_ALLOWED_ORIGINS} in every profile.
      */
     @Value("${app.cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173,"
-            + "https://innovasphere-4mmu.onrender.com,https://innovasphere-frontend.onrender.com}")
+            + "http://localhost,http://127.0.0.1}")
     private String corsOrigins;
 
     @Bean
@@ -33,8 +33,9 @@ public class CorsConfig {
                 .toList();
 
         CorsConfiguration config = new CorsConfiguration();
-        // Patterns (not exact origins) are required because the app sends
-        // credentials, and they also cover the rotating *.onrender.com hostnames.
+        // Patterns are used so each environment can list its exact origins
+        // (localhost in development, Cloudflare Pages in production). Keep the
+        // production list explicit; do not use a wildcard with credentials.
         config.setAllowedOriginPatterns(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

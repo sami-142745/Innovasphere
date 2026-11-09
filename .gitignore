@@ -55,6 +55,7 @@ vite-dev.log
 
 # --- Local config ---
 local.properties
+login.json
 .settings/
 .project
 .classpath
@@ -63,3 +64,4 @@ local.properties
 .eslintcache
 .prettiercache
 *.tsbuildinfo
+innovasphere.sql
