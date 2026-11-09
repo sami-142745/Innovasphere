@@ -153,7 +153,7 @@ export default function Detail() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <PageHeader
         title={team.name}
         description={team.description || 'Team details, members and invitations.'}
@@ -208,7 +208,7 @@ export default function Detail() {
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Related project</p>
               <Link
                 to={`/projects/${team.projectId}`}
-                className="mt-1 inline-block text-sm font-medium text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+                className="focus-ring mt-1 inline-block text-sm font-medium text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
               >
                 Open project →
               </Link>

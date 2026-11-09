@@ -54,7 +54,7 @@ export default function My() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <HeroBanner
         eyebrow="Collaboration"
         title="My teams"
@@ -67,7 +67,7 @@ export default function My() {
         </p>
         <Link
           to="/projects"
-          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+          className="focus-ring inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-brand-600 transition hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
         >
           Browse projects
           <ArrowRight className="h-4 w-4" aria-hidden="true" />

@@ -42,11 +42,11 @@ export default function Detail() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <div className="mb-6">
         <Link
           to="/mentors"
-          className="glass-chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
+          className="focus-ring glass-chip inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to all mentors

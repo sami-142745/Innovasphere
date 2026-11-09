@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CalendarClock, ExternalLink, Users } from 'lucide-react';
 import { extractApiError } from '../../api/client';
 import { JoinRequestForm } from '../../components/forms/JoinRequestForm';
-import { Avatar, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, ConfirmationDialog, EmptyState, ErrorState, Modal, Skeleton, Spinner } from '../../components/ui';
+import { Avatar, Badge, Button, ButtonLink, Card, CardContent, CardDescription, CardHeader, CardTitle, ConfirmationDialog, EmptyState, ErrorState, Modal, Skeleton, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useAsync } from '../../hooks/useAsync';
@@ -79,7 +79,7 @@ export default function Detail() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <div className="glass-panel relative mb-8 overflow-hidden rounded-panel">
         <div className={cn('relative h-32 overflow-hidden bg-gradient-to-br sm:h-40', coverGradient(project.id || project.title))}>
           <div className="absolute inset-0 bg-grid opacity-30" aria-hidden="true" />
@@ -111,9 +111,7 @@ export default function Detail() {
             <div className="flex shrink-0 gap-2">
               {isOwner ? (
                 <>
-                  <Link to={`/projects/edit/${project.id}`}>
-                    <Button variant="outline">Edit</Button>
-                  </Link>
+                  <ButtonLink variant="outline" to={`/projects/edit/${project.id}`}>Edit</ButtonLink>
                   <Button variant="danger" onClick={() => setDeleteOpen(true)}>
                     Delete
                   </Button>
@@ -232,7 +230,7 @@ export default function Detail() {
                   <li key={team.id}>
                     <Link
                       to={`/teams/${team.id}`}
-                      className="group flex items-center justify-between gap-4 rounded-xl px-2 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                      className="focus-ring group flex items-center justify-between gap-4 rounded-xl px-2 py-3 transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-slate-900 group-hover:text-brand-700 dark:text-slate-100 dark:group-hover:text-brand-300">
