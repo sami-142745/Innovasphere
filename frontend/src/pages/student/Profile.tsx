@@ -7,6 +7,7 @@ import type { ProjectStatus } from '../../types';
 import {
   Avatar,
   Badge,
+  ButtonLink,
   Card,
   CardContent,
   CardHeader,
@@ -17,7 +18,6 @@ import {
 } from '../../components/ui';
 import { formatDate, projectStatusLabel, titleCase, yearOfStudyLabel } from '../../utils/format';
 import { HeroBanner } from '../../components/shared/HeroBanner';
-import { Button } from '../../components/ui/Button';
 
 const STATUS_TONES: Record<ProjectStatus, 'default' | 'brand' | 'success' | 'warning' | 'indigo'> = {
   IDEA: 'default',
@@ -136,9 +136,7 @@ export default function Profile() {
               description="Create your first research project to start building a team."
               icon={FolderPlus}
             >
-              <Link to="/projects/create">
-                <Button variant="gradient">Create a project</Button>
-              </Link>
+              <ButtonLink variant="gradient" to="/projects/create">Create a project</ButtonLink>
             </EmptyState>
           ) : (
             <ul className="space-y-3">
