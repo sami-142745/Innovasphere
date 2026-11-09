@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { extractApiError } from '../api/client';
-import { Avatar, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, ErrorState, GridSkeleton } from '../components/ui';
+import { Avatar, Badge, Button, ButtonLink, Card, CardContent, CardDescription, CardHeader, CardTitle, EmptyState, ErrorState, GridSkeleton } from '../components/ui';
 import { DonutChartCard, TrendChartCard } from '../components/shared/Charts';
 import { HeroBanner } from '../components/shared/HeroBanner';
 import { RecommendationCard } from '../components/shared/RecommendationCard';
@@ -150,19 +150,11 @@ function StudentDashboard() {
   }, [unreadCount]);
 
   if (loading) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <GridSkeleton count={6} />
-      </div>
-    );
+    return <div><GridSkeleton count={6} /></div>;
   }
 
   if (error) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <ErrorState message={error} onRetry={loadDashboard} />
-      </div>
-    );
+    return <div><ErrorState message={error} onRetry={loadDashboard} /></div>;
   }
 
   const pendingJoins = stats.pendingJoins;
@@ -172,7 +164,7 @@ function StudentDashboard() {
   const recMentorsTotal = stats.recommendedMentors;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <HeroBanner
         eyebrow="AI-driven research matching"
         title={
@@ -183,16 +175,12 @@ function StudentDashboard() {
         description="Your personalized research workspace — top-matched projects, mentors and activity, all in one place."
         actions={
           <>
-            <Link to="/projects/create">
-              <Button variant="gradient" className="shadow-[0_10px_30px_-8px_rgb(109_94_245/0.6)]">
-                <Plus className="h-4 w-4" aria-hidden="true" /> Start a project
-              </Button>
-            </Link>
-            <Link to="/mentors">
-              <Button variant="outline">
-                <Compass className="h-4 w-4" aria-hidden="true" /> Find mentors
-              </Button>
-            </Link>
+            <ButtonLink variant="gradient" to="/projects/create" className="shadow-[0_10px_30px_-8px_rgb(109_94_245/0.6)]">
+              <Plus className="h-4 w-4" aria-hidden="true" /> Start a project
+            </ButtonLink>
+            <ButtonLink variant="outline" to="/mentors">
+              <Compass className="h-4 w-4" aria-hidden="true" /> Find mentors
+            </ButtonLink>
           </>
         }
       />
@@ -317,19 +305,11 @@ function FacultyDashboard() {
   }
 
   if (loading) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <GridSkeleton count={6} />
-      </div>
-    );
+    return <div><GridSkeleton count={6} /></div>;
   }
 
   if (error) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <ErrorState message={error} onRetry={reloadAll} />
-      </div>
-    );
+    return <div><ErrorState message={error} onRetry={reloadAll} /></div>;
   }
 
   const statusData = buildStatusDistribution([]);
@@ -337,7 +317,7 @@ function FacultyDashboard() {
   const firstName = user?.fullName?.split(' ')[0] ?? 'Professor';
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <HeroBanner
         accent="faculty"
         eyebrow="Faculty workspace"
@@ -423,7 +403,7 @@ function AdminDashboard() {
   const { user } = useAuth();
   const firstName = user?.fullName?.split(' ')[0] ?? 'Admin';
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <HeroBanner
         accent="admin"
         eyebrow="Platform administration"
@@ -434,11 +414,9 @@ function AdminDashboard() {
         }
         description="Govern users, projects and faculty with full visibility into the INNOVASPHERE ecosystem."
         actions={
-          <Link to="/admin/dashboard">
-            <Button variant="gradient">
-              Open admin dashboard <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </Link>
+          <ButtonLink variant="gradient" to="/admin/dashboard">
+            Open admin dashboard <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </ButtonLink>
         }
       >
         <div className="flex h-full items-center justify-center">
@@ -464,7 +442,7 @@ function AdminDashboard() {
               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Guidance</p>
               <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">Open the admin dashboard for analytics and moderation.</p>
             </div>
-            <Link to="/admin/users" className="group">
+            <Link to="/admin/users" className="focus-ring group">
               <div className="glass-chip flex h-full items-center justify-between rounded-card-sm p-4 transition group-hover:border-brand-300 dark:group-hover:border-brand-400/40">
                 <p className="text-sm font-medium text-brand-600 dark:text-brand-400">Manage users</p>
                 <ArrowRight className="h-4 w-4 text-brand-500 transition group-hover:translate-x-1" aria-hidden="true" />
