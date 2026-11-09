@@ -35,13 +35,13 @@ export function Pagination({ page, totalPages, totalElements, pageSize, onChange
         Showing <span className="font-semibold text-slate-700 dark:text-slate-200">{start}–{end}</span> of{' '}
         <span className="font-semibold text-slate-700 dark:text-slate-200">{totalElements}</span>
       </p>
-      <div className="flex items-center gap-1 rounded-xl p-1 shadow-sm dark:bg-white/[0.03]">
+      <div className="glass-chip flex items-center gap-1 rounded-xl p-1 shadow-sm">
         <button
           type="button"
           onClick={() => onChange(Math.max(0, page - 1))}
           disabled={page === 0}
           aria-label="Previous page"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 disabled:pointer-events-none disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-brand-400/40 dark:hover:bg-brand-500/10 dark:hover:text-brand-200"
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -57,10 +57,10 @@ export function Pagination({ page, totalPages, totalElements, pageSize, onChange
               onClick={() => onChange(p)}
               aria-current={p === page ? 'page' : undefined}
               className={cn(
-                'inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium transition',
+                'focus-ring inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-semibold transition',
                 p === page
-                  ? 'bg-gradient-brand text-white shadow-glow-soft'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/[0.08]'
+                  ? 'bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-glow-soft'
+                  : 'text-slate-600 hover:bg-brand-50 hover:text-brand-700 dark:text-slate-300 dark:hover:bg-white/[0.08] dark:hover:text-brand-200'
               )}
             >
               {p + 1}
@@ -72,7 +72,7 @@ export function Pagination({ page, totalPages, totalElements, pageSize, onChange
           onClick={() => onChange(Math.min(totalPages - 1, page + 1))}
           disabled={page >= totalPages - 1}
           aria-label="Next page"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 disabled:pointer-events-none disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-brand-400/40 dark:hover:bg-brand-500/10 dark:hover:text-brand-200"
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>

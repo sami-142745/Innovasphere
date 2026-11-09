@@ -5,7 +5,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        'rounded-card border border-slate-200/80 bg-white shadow-card dark:border-white/[0.08] dark:bg-deep-800/80 dark:shadow-none',
+        'rounded-card border border-slate-200/80 bg-gradient-to-br from-white via-white to-brand-50/40 shadow-card dark:border-white/[0.08] dark:from-deep-800/90 dark:via-deep-800/80 dark:to-deep-750/70 dark:shadow-none',
         className
       )}
       {...props}
@@ -60,12 +60,12 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn('mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between', className)}>
+    <div className={cn('page-header', className)}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-[28px] dark:text-slate-50">{title}</h1>
-        {description && <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">{description}</p>}
+        <h1 className="page-header-title">{title}</h1>
+        {description && <p className="page-header-description">{description}</p>}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && <div className="page-header-actions">{actions}</div>}
     </div>
   );
 }
@@ -84,7 +84,8 @@ export function SectionHeading({
 }) {
   return (
     <div className={cn('mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between', className)}>
-      <div>
+      <div className="relative pl-3.5">
+        <span className="absolute inset-y-0 left-0 w-1 rounded-full bg-gradient-to-b from-brand-500 via-accent-500 to-orchid-500" aria-hidden="true" />
         <h2 className="text-lg font-semibold tracking-tight text-slate-900 md:text-xl dark:text-slate-50">{title}</h2>
         {description && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
       </div>

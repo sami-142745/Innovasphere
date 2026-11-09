@@ -29,7 +29,7 @@ export function Avatar({ name, size = 'md', src, className, ring = true }: Avata
     <span
       aria-hidden="true"
       className={cn(
-        'flex h-full w-full select-none items-center justify-center bg-gradient-to-br from-brand-500 via-brand-600 to-accent-600 font-semibold text-white',
+        'flex h-full w-full select-none items-center justify-center bg-gradient-to-br from-brand-600 via-brand-500 to-accent-700 font-bold text-white',
         className
       )}
     >
@@ -42,7 +42,7 @@ export function Avatar({ name, size = 'md', src, className, ring = true }: Avata
       className={cn(
         'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full',
         ring
-          ? 'ring-2 ring-white shadow-[0_0_0_1px_rgb(2_8_23/0.06)] dark:ring-deep-900/80'
+          ? 'shadow-glow-soft ring-2 ring-white/95 dark:ring-deep-900/80'
           : '',
         SIZE_CLASSES[size]
       )}

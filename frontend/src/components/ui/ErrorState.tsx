@@ -8,13 +8,13 @@ export interface ErrorStateProps {
 
 export function ErrorState({ message = 'Failed to load data.', onRetry }: ErrorStateProps) {
   return (
-    <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-panel border border-rose-200/80 bg-rose-50/60 px-6 py-12 text-center dark:border-rose-500/20 dark:bg-rose-950/20">
-      <div className="blob blob-purple h-36 w-36 opacity-30" aria-hidden="true" />
-      <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-sunset shadow-[0_10px_30px_-8px_rgb(239_68_68/0.5)]">
+    <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-panel border border-status-rejected-200/80 bg-status-rejected-50/60 px-6 py-12 text-center dark:border-status-rejected-500/20 dark:bg-status-rejected-950/20">
+      <div className="blob blob-orchid h-36 w-36 opacity-30" aria-hidden="true" />
+      <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-status-rejected-600 to-status-rejected-800 shadow-[0_10px_30px_-8px_rgb(244_63_94/0.5)]">
         <AlertTriangle className="h-6 w-6 text-white" aria-hidden="true" />
       </div>
-      <h3 className="relative mt-4 text-base font-semibold text-rose-900 dark:text-rose-200">Something went wrong</h3>
-      <p className="relative mt-1 max-w-md text-sm text-rose-700 dark:text-rose-300">{message}</p>
+      <h3 className="relative mt-4 text-base font-semibold text-status-rejected-900 dark:text-status-rejected-200">Something went wrong</h3>
+      <p className="relative mt-1 max-w-md text-sm text-status-rejected-700 dark:text-status-rejected-300">{message}</p>
       {onRetry && (
         <Button variant="outline" className="relative mt-5" onClick={onRetry}>
           Try again

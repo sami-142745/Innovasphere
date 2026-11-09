@@ -26,7 +26,14 @@ export function ProgressRing({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (clamped / 100) * circumference;
-  const textColor = clamped >= 80 ? 'text-emerald-500' : clamped >= 50 ? 'text-brand-500' : clamped >= 25 ? 'text-amber-500' : 'text-slate-400';
+  const textColor =
+    clamped >= 80
+      ? 'text-status-open-600 dark:text-status-open-400'
+      : clamped >= 50
+        ? 'text-brand-600 dark:text-brand-400'
+        : clamped >= 25
+          ? 'text-status-in-progress-600 dark:text-status-in-progress-400'
+          : 'text-slate-400 dark:text-slate-500';
 
   return (
     <div
@@ -40,9 +47,9 @@ export function ProgressRing({
         {gradient && (
           <defs>
             <linearGradient id={`pg-${gradientId}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#6D5EF5" />
+              <stop offset="0%" stopColor="#7C3AED" />
               <stop offset="50%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#00D1FF" />
+              <stop offset="100%" stopColor="#06B6D4" />
             </linearGradient>
           </defs>
         )}

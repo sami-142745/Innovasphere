@@ -82,17 +82,17 @@ const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
 const PROJECT_STATUS_CLASSES: Record<ProjectStatus, string> = {
   IDEA: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   LOOKING_FOR_TEAM: 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300',
-  IN_PROGRESS: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
-  UNDER_REVIEW: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
-  COMPLETED: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300'
+  IN_PROGRESS: 'bg-status-open-50 text-status-open-700 dark:bg-status-open-500/10 dark:text-status-open-300',
+  UNDER_REVIEW: 'bg-status-in-progress-50 text-status-in-progress-700 dark:bg-status-in-progress-500/10 dark:text-status-in-progress-300',
+  COMPLETED: 'bg-status-completed-50 text-status-completed-700 dark:bg-status-completed-500/10 dark:text-status-completed-300'
 };
 
 const PROJECT_STATUS_STROKES: Record<ProjectStatus, string> = {
   IDEA: 'bg-slate-400',
   LOOKING_FOR_TEAM: 'bg-brand-500',
-  IN_PROGRESS: 'bg-emerald-500',
-  UNDER_REVIEW: 'bg-amber-500',
-  COMPLETED: 'bg-indigo-500'
+  IN_PROGRESS: 'bg-status-open-500',
+  UNDER_REVIEW: 'bg-status-in-progress-500',
+  COMPLETED: 'bg-status-completed-500'
 };
 
 export function projectStatusLabel(status: ProjectStatus): string {
@@ -110,13 +110,13 @@ export function projectStatusStroke(status: ProjectStatus): string {
 export function projectStatusTone(status: ProjectStatus): BadgeTone {
   switch (status) {
     case 'IN_PROGRESS':
-      return 'success';
+      return 'open';
     case 'UNDER_REVIEW':
-      return 'warning';
+      return 'in-progress';
     case 'LOOKING_FOR_TEAM':
       return 'brand';
     case 'COMPLETED':
-      return 'indigo';
+      return 'completed';
     default:
       return 'default';
   }
@@ -125,21 +125,21 @@ export function projectStatusTone(status: ProjectStatus): BadgeTone {
 export function requestStatusTone(status: RequestStatus): BadgeTone {
   switch (status) {
     case 'ACCEPTED':
-      return 'success';
+      return 'open';
     case 'REJECTED':
-      return 'danger';
+      return 'rejected';
     default:
-      return 'warning';
+      return 'in-progress';
   }
 }
 
 const COVER_GRADIENTS = [
-  'from-brand-600 via-indigo-500 to-accent-500',
-  'from-purple-600 via-orchid-500 to-accent-500',
-  'from-indigo-600 via-brand-600 to-purple-600',
-  'from-accent-600 via-sky-500 to-brand-500',
-  'from-fuchsia-600 via-purple-500 to-indigo-500',
-  'from-sky-600 via-indigo-500 to-purple-600'
+  'from-brand-600 via-blue-600 to-orchid-700',
+  'from-accent-600 via-brand-600 to-orchid-800',
+  'from-brand-700 via-indigo-600 to-accent-700',
+  'from-orchid-600 via-brand-600 to-accent-700',
+  'from-accent-700 via-brand-600 to-blue-700',
+  'from-status-completed-600 via-brand-600 to-orchid-700'
 ];
 
 /** Deterministic decorative cover-art gradient derived from a stable string (title/id/domain). */
@@ -152,9 +152,9 @@ export function coverGradient(seed: string): string {
 }
 
 const REQUEST_STATUS_CLASSES: Record<RequestStatus, string> = {
-  PENDING: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
-  ACCEPTED: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
-  REJECTED: 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
+  PENDING: 'bg-status-in-progress-50 text-status-in-progress-700 dark:bg-status-in-progress-500/10 dark:text-status-in-progress-300',
+  ACCEPTED: 'bg-status-open-50 text-status-open-700 dark:bg-status-open-500/10 dark:text-status-open-300',
+  REJECTED: 'bg-status-rejected-50 text-status-rejected-700 dark:bg-status-rejected-500/10 dark:text-status-rejected-300'
 };
 
 export function requestStatusLabel(status: RequestStatus): string {

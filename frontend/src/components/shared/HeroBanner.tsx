@@ -21,7 +21,7 @@ export function HeroBanner({ eyebrow, title, description, actions, accent = 'bra
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        'glass-panel relative overflow-hidden rounded-panel px-6 py-8 sm:px-8 sm:py-10',
+        'glass-panel gradient-border relative overflow-hidden rounded-panel px-6 py-8 sm:px-8 sm:py-10',
         className
       )}
     >
@@ -41,7 +41,7 @@ export function HeroBanner({ eyebrow, title, description, actions, accent = 'bra
               {eyebrow}
             </span>
           )}
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-[32px] dark:text-slate-50">{title}</h1>
+          <h1 className="gradient-text mt-4 text-3xl font-bold tracking-tight sm:text-[32px]">{title}</h1>
           {description && (
             <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">{description}</p>
           )}
