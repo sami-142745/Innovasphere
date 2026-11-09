@@ -138,7 +138,7 @@ export default function Users() {
                 </Table>
               </Card>
             </div>
-            <BarChartCard title="Users by role (derived)" description="Distinct project owners plus faculty mentors" data={roleData} color="#6366f1" />
+            <BarChartCard title="Users by role (derived)" description="Distinct project owners plus faculty mentors" data={roleData} color="#7c3aed" />
           </div>
         </>
       )}
