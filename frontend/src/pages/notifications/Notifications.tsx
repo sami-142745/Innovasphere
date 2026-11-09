@@ -170,7 +170,6 @@ export default function NotificationsPage() {
                     'glass-panel flex items-start gap-4 rounded-panel p-4 transition-all duration-200',
                     unread && 'border-brand-300/60 dark:border-brand-400/25'
                   )}
-                  onClick={unread ? () => void handleMarkRead(notification) : undefined}
                 >
                   <span className={cn('relative mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white', style.gradient)}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -202,7 +201,7 @@ export default function NotificationsPage() {
                         void handleMarkRead(notification);
                       }}
                       aria-label={`Mark read: ${notification.title}`}
-                      className="hidden shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600 sm:inline-flex dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
+                      className="shrink-0 inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
                     >
                       <CheckCheck className="h-4 w-4" aria-hidden="true" />
                     </button>

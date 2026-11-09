@@ -199,7 +199,7 @@ export default function Directory() {
   }, [totalPages, pageNumber, setPage]);
 
   return (
-    <div className="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div className="relative">
       <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72" aria-hidden="true">
         <div className="blob blob-purple h-full w-full opacity-30" />
       </div>

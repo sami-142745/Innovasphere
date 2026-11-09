@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ProjectCard } from '../../components/shared/ProjectCard';
-import { Button, EmptyState, ErrorState, GridSkeleton, Pagination } from '../../components/ui';
+import { Button, ButtonLink, EmptyState, ErrorState, GridSkeleton, Pagination } from '../../components/ui';
 import { HeroBanner } from '../../components/shared/HeroBanner';
 import { useAuth } from '../../context/AuthContext';
 import { useAsync } from '../../hooks/useAsync';
@@ -26,15 +26,13 @@ export default function My() {
   }, [data, page]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div>
       <HeroBanner
         eyebrow="Your workspace"
         title="My projects"
         description="Research projects you have created and are managing."
         actions={
-          <Link to="/projects/create">
-            <Button variant="gradient">New project</Button>
-          </Link>
+          <ButtonLink variant="gradient" to="/projects/create">New project</ButtonLink>
         }
       />
 
