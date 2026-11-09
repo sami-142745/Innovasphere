@@ -23,6 +23,7 @@ import { RecommendationCard } from '../components/shared/RecommendationCard';
 import { SectionHeading } from '../components/ui/Card';
 import { StatCard } from '../components/shared/StatCard';
 import { useAuth } from '../context/AuthContext';
+import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useToast } from '../context/ToastContext';
 import { useUnreadCount } from '../hooks/useUnreadCount';
 import { mentorService } from '../services/mentors';
@@ -103,6 +104,7 @@ function StudentDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';
+  const reducedMotion = useReducedMotion();
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -209,7 +211,7 @@ function StudentDashboard() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recommendedProjects.slice(0, 6).map((project, i) => (
-              <motion.div key={project.projectId} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <motion.div key={project.projectId} initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={reducedMotion ? {} : { delay: i * 0.05 }}>
                 <RecommendationCard project={project} />
               </motion.div>
             ))}
@@ -232,7 +234,7 @@ function StudentDashboard() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recommendedMentors.map((mentor, i) => (
-              <motion.div key={mentor.mentorId} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <motion.div key={mentor.mentorId} initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={reducedMotion ? {} : { delay: i * 0.05 }}>
                 <RecommendationCard mentor={mentor} />
               </motion.div>
             ))}
@@ -280,6 +282,7 @@ function FacultyDashboard() {
 
   const pending = requests.filter((r) => r.status === 'PENDING');
   const activeMentorships = requests.filter((r) => r.status === 'ACCEPTED').length;
+  const reducedMotion = useReducedMotion();
 
   const reloadAll = useCallback(() => {
     setLoading(true);
@@ -355,13 +358,13 @@ function FacultyDashboard() {
             ) : (
               <ul className="divide-y divide-slate-100 dark:divide-white/[0.06]">
                 {pending.map((request, i) => (
-                  <motion.li
-                    key={request.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
+                    <motion.li
+                      key={request.id}
+                      initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={reducedMotion ? {} : { delay: i * 0.04 }}
+                      className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar name={request.studentName} size="md" />
                       <div className="min-w-0">

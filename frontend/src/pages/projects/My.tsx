@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProjectCard } from '../../components/shared/ProjectCard';
-import { Button, ButtonLink, EmptyState, ErrorState, GridSkeleton, Pagination } from '../../components/ui';
+import { ButtonLink, EmptyState, ErrorState, GridSkeleton, Pagination } from '../../components/ui';
 import { HeroBanner } from '../../components/shared/HeroBanner';
 import { useAuth } from '../../context/AuthContext';
 import { useAsync } from '../../hooks/useAsync';

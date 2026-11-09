@@ -48,7 +48,7 @@ export function Navbar() {
             type="button"
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="glass-chip inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
+            className="glass-chip focus-ring inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
           </button>

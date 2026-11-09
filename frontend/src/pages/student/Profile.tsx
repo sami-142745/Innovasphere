@@ -46,7 +46,7 @@ export default function Profile() {
   const hasInterests = Boolean(studentProfile && (studentProfile.skills.length > 0 || studentProfile.researchDomains.length > 0));
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <HeroBanner eyebrow="Your profile" title="Profile" description="Your research profile and activity on INNOVASPHERE" />
 
       <div className="grid gap-6 lg:grid-cols-2">

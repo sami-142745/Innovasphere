@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { projectService } from '../../services/projects';
 import { setProjectCache, getCacheKey, getProjectCache } from '../../utils/projectCache';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { ButtonLink } from '../../components/ui/Button';
 
 const FEATURES = [
@@ -80,6 +81,11 @@ const fadeUp = {
 };
 
 export default function Landing() {
+  const reducedMotion = useReducedMotion();
+  const motionProps = reducedMotion
+    ? { initial: false, animate: { opacity: 1, y: 0 }, transition: {}, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: '-80px' } }
+    : fadeUp;
+
   useEffect(() => {
     // Prefetch projects for instant browse page load
     const query = { page: 0, size: 9, sort: 'createdAt,desc' };
@@ -109,8 +115,8 @@ export default function Landing() {
           <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_75%_65%_at_50%_30%,black,transparent)]" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-20 sm:px-6 sm:pt-28">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }} className="mx-auto max-w-3xl text-center">
+        <div className="relative mx-auto max-w-7xl pb-20 pt-20 sm:pt-28">
+          <motion.div initial={reducedMotion ? false : { opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={reducedMotion ? {} : { duration: 0.55 }} className="mx-auto max-w-3xl text-center">
             <span className="glass-chip inline-flex items-center gap-2 rounded-full border-brand-200/70 px-4 py-1.5 text-xs font-medium text-brand-700 dark:border-brand-400/25 dark:text-brand-300">
               <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
               University research collaboration, reimagined
@@ -136,12 +142,12 @@ export default function Landing() {
               </ButtonLink>
             </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="mx-auto mt-12 flex max-w-xl flex-wrap items-center justify-center gap-x-8 gap-y-3"
-            >
+              <motion.div
+                initial={reducedMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={reducedMotion ? {} : { delay: 0.5, duration: 0.6 }}
+                className="mx-auto mt-12 flex max-w-xl flex-wrap items-center justify-center gap-x-8 gap-y-3"
+              >
               {STATS.map((s) => (
                 <div key={s.value} className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{s.value}</span>
@@ -154,15 +160,14 @@ export default function Landing() {
       </section>
 
       {/* ---- Features ---- */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+      <section className="mx-auto max-w-7xl pb-16">
         <div className="grid gap-5 md:grid-cols-2">
           {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              {...fadeUp}
-              transition={{ delay: i * 0.1, ...fadeUp.transition }}
-              className="glass-panel group relative overflow-hidden rounded-panel p-7"
-            >
+              <motion.div
+                key={f.title}
+                {...motionProps}
+                className="glass-panel group relative overflow-hidden rounded-panel p-7"
+              >
               <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-brand opacity-[0.08] blur-3xl transition group-hover:opacity-20" aria-hidden="true" />
               <div className="relative flex items-center gap-3">
                 <span className={`grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br text-white transition-transform duration-300 group-hover:scale-110 ${f.accent}`}>
@@ -184,16 +189,16 @@ export default function Landing() {
       </section>
 
       {/* ---- How it works ---- */}
-      <section className="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+      <section className="relative mx-auto max-w-7xl pb-16">
         <div className="text-center">
-          <motion.span {...fadeUp} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-500 dark:border-white/10 dark:text-slate-400">
+          <motion.span {...motionProps}  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-500 dark:border-white/10 dark:text-slate-400">
             <Wand2 className="h-3.5 w-3.5 text-brand-500" aria-hidden="true" />
             The pipeline
           </motion.span>
-          <motion.h2 {...fadeUp} className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+          <motion.h2 {...motionProps}  className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
             From idea to <span className="gradient-text">completed research</span>
           </motion.h2>
-          <motion.p {...fadeUp} className="mx-auto mt-3 max-w-xl text-sm text-slate-500 dark:text-slate-400">
+          <motion.p {...motionProps}  className="mx-auto mt-3 max-w-xl text-sm text-slate-500 dark:text-slate-400">
             Three simple steps take a research idea from pitch to completed, mentored project.
           </motion.p>
         </div>
@@ -201,12 +206,11 @@ export default function Landing() {
         <div className="relative mt-12 grid gap-5 md:grid-cols-3">
           <div className="pointer-events-none absolute inset-x-16 top-10 hidden h-px bg-gradient-to-r from-brand-500/40 via-accent-500/40 to-orchid-500/40 md:block" aria-hidden="true" />
           {STEPS.map((s, i) => (
-            <motion.div
-              key={s.step}
-              {...fadeUp}
-              transition={{ delay: i * 0.12, ...fadeUp.transition }}
-              className="glass relative overflow-hidden rounded-panel p-6 transition-all duration-300 hover:-translate-y-1"
-            >
+              <motion.div
+                key={s.step}
+                {...motionProps}
+                className="glass relative overflow-hidden rounded-panel p-6 transition-all duration-300 hover:-translate-y-1"
+              >
               <span className="text-5xl font-black tracking-tight bg-gradient-to-b from-slate-200 to-slate-100 bg-clip-text text-transparent dark:from-white/10 dark:to-white/5">
                 {s.step}
               </span>
@@ -221,8 +225,8 @@ export default function Landing() {
       </section>
 
       {/* ---- AI match spotlight ---- */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
-        <motion.div {...fadeUp} className="glass-panel relative overflow-hidden rounded-panel p-8 sm:p-10">
+      <section className="mx-auto max-w-7xl pb-16">
+        <motion.div {...motionProps}  className="glass-panel relative overflow-hidden rounded-panel p-8 sm:p-10">
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
             <div className="blob blob-cyan -right-16 -top-16 h-64 w-64" />
             <div className="blob blob-purple -bottom-20 -left-16 h-72 w-72" />
@@ -277,8 +281,8 @@ export default function Landing() {
       </section>
 
       {/* ---- Testimonial ---- */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
-        <motion.blockquote {...fadeUp} className="glass-panel relative mx-auto max-w-3xl rounded-panel p-8 text-center sm:p-10">
+      <section className="mx-auto max-w-7xl pb-16">
+        <motion.blockquote {...motionProps}  className="glass-panel relative mx-auto max-w-3xl rounded-panel p-8 text-center sm:p-10">
           <Quote className="mx-auto h-8 w-8 text-brand-400/60" aria-hidden="true" />
           <p className="mt-5 text-lg leading-relaxed text-slate-700 dark:text-slate-200">
             &ldquo;INNOVASPHERE matched our lab with students who already knew the stack — and the mentorship loop kept the
@@ -295,9 +299,9 @@ export default function Landing() {
       </section>
 
       {/* ---- CTA ---- */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
+      <section className="mx-auto max-w-7xl pb-20">
         <motion.div
-          {...fadeUp}
+          {...motionProps}
           className="gradient-animated relative overflow-hidden rounded-panel px-6 py-14 text-center shadow-[0_20px_60px_-20px_rgb(109_94_245/0.6)] sm:px-12"
         >
           <div className="pointer-events-none absolute inset-0 bg-grid opacity-20" aria-hidden="true" />

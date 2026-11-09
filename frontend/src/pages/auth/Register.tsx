@@ -10,7 +10,7 @@ export default function Register() {
       footer={
         <span>
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+          <Link to="/login" className="focus-ring font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
             Sign in
           </Link>
         </span>

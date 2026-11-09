@@ -125,7 +125,7 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
               <ToggleRow
                 label="Email alerts"
                 description="Receive email when your projects or mentorship requests are updated."

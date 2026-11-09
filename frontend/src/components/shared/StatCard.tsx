@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { type LucideIcon } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 export interface StatCardProps {
   label: string;
@@ -64,11 +65,12 @@ function AnimatedValue({ value }: { value: number | string }) {
 
 export function StatCard({ label, value, icon: Icon, hint, accent = 'brand', delay = 0 }: StatCardProps) {
   const style = ACCENT_STYLES[accent];
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay }}
+      transition={reducedMotion ? {} : { duration: 0.35, delay }}
       className="glass-panel group relative overflow-hidden rounded-panel p-5 transition-shadow duration-300 hover:shadow-card-hover"
     >
       <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-primary opacity-[0.08] blur-2xl transition-opacity group-hover:opacity-20" aria-hidden="true" />
