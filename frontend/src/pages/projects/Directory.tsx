@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Filter, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { FilterChips } from '../../components/shared/FilterChips';
+import { HeroBanner } from '../../components/shared/HeroBanner';
 import { ProjectCard } from '../../components/shared/ProjectCard';
 import { SortSelect } from '../../components/shared/SortSelect';
 import { EmptyState, ErrorState, GridSkeleton, Input, Pagination, SearchInput } from '../../components/ui';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useUrlState } from '../../hooks/useUrlState';
 import { projectRequestKey, projectService } from '../../services/projects';
 import { extractApiError } from '../../api/client';
@@ -32,6 +34,7 @@ export default function Directory() {
   const [sort, setSort] = useState<string>(SORT_OPTIONS[0].value);
   const [reloadNonce, setReloadNonce] = useState(0);
   const debouncedKeyword = useDebounce(keyword, 400);
+  const reducedMotion = useReducedMotion();
 
   const pageNumber = Math.max(0, Number(page) || 0);
 
@@ -199,27 +202,25 @@ export default function Directory() {
   }, [totalPages, pageNumber, setPage]);
 
   return (
-    <div className="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <div className="relative">
       <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72" aria-hidden="true">
         <div className="blob blob-purple h-full w-full opacity-30" />
       </div>
 
-      <div className="relative mb-8">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-200/70 bg-brand-50/70 px-3 py-1 text-xs font-medium text-brand-700 dark:border-brand-400/20 dark:bg-brand-500/10 dark:text-brand-300">
-          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Research marketplace
-        </span>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 md:text-[36px] dark:text-slate-50">
-          Browse <span className="gradient-text">research projects</span>
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-          Explore collaborations by domain, skill or open team spots — then join a team that fits you.
-        </p>
-      </div>
+      <HeroBanner
+        eyebrow="Research marketplace"
+        title={
+          <>
+            Browse <span className="gradient-text">research projects</span>
+          </>
+        }
+        description="Explore collaborations by domain, skill or open team spots — then join a team that fits you."
+      />
 
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={reducedMotion ? {} : { duration: 0.4 }}
         className="glass-panel mb-6 rounded-panel p-5"
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -279,7 +280,7 @@ export default function Directory() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((p, i) => (
               <React.Fragment key={p.id}>
-                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                <motion.div initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={reducedMotion ? {} : { delay: i * 0.04 }}>
                   <ProjectCard project={p} />
                 </motion.div>
               </React.Fragment>

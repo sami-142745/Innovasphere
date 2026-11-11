@@ -34,7 +34,7 @@ export default function Edit() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-2xl py-6 sm:py-8">
       <HeroBanner eyebrow="Project settings" title="Edit project" description="Update the project details and team requirements." />
       <Card className="relative mt-6 overflow-hidden rounded-panel">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent" aria-hidden="true" />

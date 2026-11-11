@@ -16,20 +16,29 @@
     color-scheme: dark;
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
     background-image:
-      radial-gradient(1100px 520px at 12% -8%, rgb(109 94 245 / 0.06), transparent 60%),
-      radial-gradient(900px 480px at 95% 0%, rgb(0 209 255 / 0.05), transparent 55%);
+      radial-gradient(1100px 520px at 12% -8%, rgb(124 58 237 / 0.07), transparent 60%),
+      radial-gradient(900px 480px at 95% 0%, rgb(236 72 153 / 0.05), transparent 55%);
     background-attachment: fixed;
   }
 
   .dark body {
     @apply bg-deep-950 text-slate-100;
     background-image:
-      radial-gradient(1100px 620px at 10% -10%, rgb(109 94 245 / 0.14), transparent 60%),
-      radial-gradient(900px 560px at 100% -5%, rgb(0 209 255 / 0.10), transparent 55%),
-      radial-gradient(720px 480px at 55% 110%, rgb(168 85 247 / 0.08), transparent 60%);
+      radial-gradient(1100px 620px at 10% -10%, rgb(124 58 237 / 0.16), transparent 60%),
+      radial-gradient(900px 560px at 100% -5%, rgb(6 182 212 / 0.12), transparent 55%),
+      radial-gradient(720px 480px at 55% 110%, rgb(236 72 153 / 0.09), transparent 60%);
     background-attachment: fixed;
   }
 
@@ -94,17 +103,90 @@
     @apply border border-slate-200/80 bg-white/60 backdrop-blur-md dark:border-white/10 dark:bg-white/5;
   }
 
+  /* ---- Focus ---- */
+  .focus-ring:focus-visible {
+    outline: 2px solid theme('colors.brand.500');
+    outline-offset: 2px;
+  }
+  .dark .focus-ring:focus-visible {
+    outline-color: theme('colors.brand.300');
+  }
+
+  /* ---- Shared page header ---- */
+  .page-header {
+    @apply mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between;
+  }
+  .page-header-title {
+    @apply bg-gradient-to-r from-slate-900 via-brand-700 to-accent-700 bg-clip-text text-2xl font-bold tracking-tight text-transparent md:text-[28px] dark:from-slate-50 dark:via-brand-200 dark:to-accent-200;
+  }
+  .page-header-description {
+    @apply mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400;
+  }
+  .page-header-actions {
+    @apply flex shrink-0 items-center gap-2;
+  }
+
+  /* ---- Shared list rows ---- */
+  .list-row {
+    @apply flex items-center justify-between gap-4 rounded-card border border-slate-200/70 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-white/[0.08] dark:bg-deep-800/60;
+  }
+  .list-row-interactive {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover dark:hover:border-brand-400/40;
+  }
+  .list-row-title {
+    @apply truncate text-sm font-semibold text-slate-900 dark:text-slate-100;
+  }
+  .list-row-meta {
+    @apply flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400;
+  }
+
   /* ---- Gradient text ---- */
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-500 via-brand-600 to-accent-500 bg-clip-text text-transparent dark:from-brand-300 dark:via-brand-400 dark:to-accent-400;
+    @apply bg-gradient-to-r from-brand-600 via-blue-600 to-orchid-700 bg-clip-text text-transparent dark:from-brand-300 dark:via-blue-300 dark:to-orchid-300;
+  }
+  .gradient-text-accent {
+    @apply bg-gradient-to-r from-brand-600 via-accent-600 to-accent-700 bg-clip-text text-transparent dark:from-brand-300 dark:via-accent-300 dark:to-accent-400;
   }
   .gradient-text-cyan {
-    @apply bg-gradient-to-r from-accent-500 via-orchid-500 to-brand-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-orchid-700 via-blue-600 to-brand-600 bg-clip-text text-transparent dark:from-orchid-300 dark:via-blue-300 dark:to-brand-300;
+  }
+
+  /* ---- Gradient borders ---- */
+  .gradient-border,
+  .gradient-border-accent {
+    position: relative;
+    isolation: isolate;
+  }
+  .gradient-border::before,
+  .gradient-border-accent::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  .gradient-border::before {
+    background: linear-gradient(135deg, #7C3AED 0%, #3B82F6 52%, #06B6D4 100%);
+  }
+  .gradient-border-accent::before {
+    background: linear-gradient(135deg, #7C3AED 0%, #EC4899 100%);
+  }
+
+  /* ---- Readable primary gradient (keeps white text AA) ---- */
+  .gradient-primary-readable {
+    background-image:
+      linear-gradient(rgb(6 8 31 / 0.55), rgb(6 8 31 / 0.55)),
+      linear-gradient(135deg, #7C3AED 0%, #3B82F6 52%, #06B6D4 100%);
   }
 
   /* ---- Animated gradient surface ---- */
   .gradient-animated {
-    background: linear-gradient(120deg, #6D5EF5, #3B82F6, #00D1FF, #A855F7, #6D5EF5);
+    background: linear-gradient(120deg, #5B21B6, #4C1D95, #0E7490, #831843, #5B21B6);
     background-size: 300% 300%;
     animation: gradient-pan 8s ease infinite;
   }
@@ -176,14 +258,15 @@
     filter: blur(64px);
     pointer-events: none;
   }
+  .blob-brand,
   .blob-purple {
-    background: radial-gradient(circle, rgb(109 94 245 / 0.5), transparent 70%);
+    background: radial-gradient(circle, rgb(124 58 237 / 0.5), transparent 70%);
   }
   .blob-cyan {
-    background: radial-gradient(circle, rgb(0 209 255 / 0.4), transparent 70%);
+    background: radial-gradient(circle, rgb(6 182 212 / 0.4), transparent 70%);
   }
   .blob-orchid {
-    background: radial-gradient(circle, rgb(168 85 247 / 0.42), transparent 70%);
+    background: radial-gradient(circle, rgb(236 72 153 / 0.42), transparent 70%);
   }
   .blob-blue {
     background: radial-gradient(circle, rgb(59 130 246 / 0.42), transparent 70%);

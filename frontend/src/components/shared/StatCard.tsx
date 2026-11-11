@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { type LucideIcon } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 export interface StatCardProps {
   label: string;
@@ -14,28 +15,28 @@ export interface StatCardProps {
 
 const ACCENT_STYLES = {
   brand: {
-    tile: 'bg-gradient-to-br from-brand-500 to-indigo-600 shadow-glow',
-    text: 'text-brand-600 dark:text-brand-400'
+    tile: 'bg-gradient-to-br from-brand-600 via-brand-500 to-blue-700 shadow-glow',
+    text: 'text-brand-700 dark:text-brand-300'
   },
   accent: {
-    tile: 'bg-gradient-to-br from-accent-500 to-brand-600 shadow-glow-cyan',
-    text: 'text-accent-600 dark:text-accent-400'
+    tile: 'bg-gradient-to-br from-accent-600 via-accent-700 to-brand-700 shadow-[0_10px_30px_-10px_rgb(219_39_119/0.55)]',
+    text: 'text-accent-700 dark:text-accent-300'
   },
   success: {
-    tile: 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-[0_10px_30px_-10px_rgb(16_185_129/0.55)]',
-    text: 'text-emerald-600 dark:text-emerald-400'
+    tile: 'bg-gradient-to-br from-status-open-600 to-status-open-800 shadow-[0_10px_30px_-10px_rgb(16_185_129/0.55)]',
+    text: 'text-status-open-700 dark:text-status-open-300'
   },
   warning: {
-    tile: 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-[0_10px_30px_-10px_rgb(245_158_11/0.55)]',
-    text: 'text-amber-600 dark:text-amber-400'
+    tile: 'bg-gradient-to-br from-status-in-progress-700 to-status-in-progress-900 shadow-[0_10px_30px_-10px_rgb(245_158_11/0.55)]',
+    text: 'text-status-in-progress-700 dark:text-status-in-progress-300'
   },
   danger: {
-    tile: 'bg-gradient-to-br from-rose-500 to-red-600 shadow-[0_10px_30px_-10px_rgb(239_68_68/0.55)]',
-    text: 'text-rose-600 dark:text-rose-400'
+    tile: 'bg-gradient-to-br from-status-rejected-600 to-status-rejected-800 shadow-[0_10px_30px_-10px_rgb(244_63_94/0.55)]',
+    text: 'text-status-rejected-700 dark:text-status-rejected-300'
   },
   indigo: {
-    tile: 'bg-gradient-to-br from-orchid-500 to-purple-700 shadow-[0_10px_30px_-10px_rgb(168_85_247/0.55)]',
-    text: 'text-purple-600 dark:text-purple-400'
+    tile: 'bg-gradient-to-br from-status-completed-600 to-status-completed-800 shadow-[0_10px_30px_-10px_rgb(59_130_246/0.55)]',
+    text: 'text-status-completed-700 dark:text-status-completed-300'
   }
 } as const;
 
@@ -64,14 +65,15 @@ function AnimatedValue({ value }: { value: number | string }) {
 
 export function StatCard({ label, value, icon: Icon, hint, accent = 'brand', delay = 0 }: StatCardProps) {
   const style = ACCENT_STYLES[accent];
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay }}
-      className="glass-panel group relative overflow-hidden rounded-panel p-5"
+      transition={reducedMotion ? {} : { duration: 0.35, delay }}
+      className="glass-panel group relative overflow-hidden rounded-panel p-5 transition-shadow duration-300 hover:shadow-card-hover"
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-brand opacity-[0.07] blur-2xl transition-opacity group-hover:opacity-15" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-primary opacity-[0.08] blur-2xl transition-opacity group-hover:opacity-20" aria-hidden="true" />
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400">{label}</p>

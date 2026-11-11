@@ -13,10 +13,10 @@ export interface EmptyStateProps {
 
 export function EmptyState({ title, description, actionLabel, onAction, icon: Icon = PackageOpen, children }: EmptyStateProps) {
   return (
-    <div className="glass relative flex flex-col items-center justify-center overflow-hidden rounded-panel px-6 py-14 text-center">
+    <div className="glass-panel gradient-border relative flex flex-col items-center justify-center overflow-hidden rounded-panel px-6 py-14 text-center">
       <div className="blob blob-purple h-40 w-40 opacity-40" aria-hidden="true" />
       <div className="relative">
-        <div className="relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-brand shadow-glow">
+        <div className="gradient-primary-readable relative mx-auto flex h-16 w-16 items-center justify-center rounded-2xl shadow-glow">
           <Icon className="h-7 w-7 text-white" aria-hidden="true" />
         </div>
         <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-accent-400 ring-alive" aria-hidden="true" />
@@ -25,7 +25,7 @@ export function EmptyState({ title, description, actionLabel, onAction, icon: Ic
       {description && <p className="relative mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">{description}</p>}
       {children}
       {actionLabel && onAction && (
-        <Button variant="gradient" className="relative mt-5" onClick={onAction}>
+        <Button variant="primary" className="relative mt-5" onClick={onAction}>
           {actionLabel}
         </Button>
       )}

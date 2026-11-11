@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom';
 import { Compass, Home } from 'lucide-react';
-import { Button } from '../../components/ui/Button';
+import { Button, ButtonLink } from '../../components/ui/Button';
 
 export default function NotFoundPage() {
   return (
@@ -25,12 +24,10 @@ export default function NotFoundPage() {
           <Button onClick={() => window.history.back()} variant="outline">
             Go back
           </Button>
-          <Link to="/">
-            <Button variant="gradient">
-              <Home className="h-4 w-4" aria-hidden="true" />
-              Back to home
-            </Button>
-          </Link>
+          <ButtonLink variant="gradient" to="/">
+            <Home className="h-4 w-4" aria-hidden="true" />
+            Back to home
+          </ButtonLink>
         </div>
       </div>
     </div>

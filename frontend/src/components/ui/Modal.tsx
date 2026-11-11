@@ -58,11 +58,11 @@ export function Modal({ open, onClose, title, description, children, footer, siz
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              'relative z-10 m-0 w-full overflow-hidden rounded-t-panel border border-slate-200/80 bg-white shadow-2xl sm:m-4 sm:rounded-panel dark:border-white/10 dark:bg-deep-800',
+              'gradient-border relative z-10 m-0 w-full overflow-hidden rounded-t-panel border border-slate-200/80 bg-white shadow-[0_28px_90px_-28px_rgb(6_8_31/0.55)] sm:m-4 sm:rounded-panel dark:border-white/10 dark:bg-deep-850',
               SIZE_CLASSES[size]
             )}
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent" aria-hidden="true" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-500 via-accent-500 to-orchid-500" aria-hidden="true" />
             <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5 dark:border-white/[0.06]">
               <div>
                 {title && <h2 id="modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-50">{title}</h2>}
@@ -72,7 +72,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
+                className="focus-ring rounded-lg p-1.5 text-slate-400 transition hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>

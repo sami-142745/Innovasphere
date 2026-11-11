@@ -17,7 +17,7 @@ export default function Login() {
       footer={
         <span>
           New here?{' '}
-          <Link to="/register" className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+          <Link to="/register" className="focus-ring font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
             Create an account
           </Link>
         </span>

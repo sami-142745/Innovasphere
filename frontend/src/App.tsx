@@ -54,10 +54,11 @@ export default function App() {
     <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>
         <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
             <Route path="/browse" element={<ProjectDirectory />} />
             <Route path="/mentors" element={<MentorDirectory />} />
           </Route>

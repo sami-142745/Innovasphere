@@ -7,6 +7,7 @@ import type { ProjectStatus } from '../../types';
 import {
   Avatar,
   Badge,
+  ButtonLink,
   Card,
   CardContent,
   CardHeader,
@@ -17,7 +18,6 @@ import {
 } from '../../components/ui';
 import { formatDate, projectStatusLabel, titleCase, yearOfStudyLabel } from '../../utils/format';
 import { HeroBanner } from '../../components/shared/HeroBanner';
-import { Button } from '../../components/ui/Button';
 
 const STATUS_TONES: Record<ProjectStatus, 'default' | 'brand' | 'success' | 'warning' | 'indigo'> = {
   IDEA: 'default',
@@ -43,10 +43,14 @@ export default function Profile() {
   if (!user) return null;
 
   const studentProfile = user.studentProfile;
-  const hasInterests = Boolean(studentProfile && (studentProfile.skills.length > 0 || studentProfile.researchDomains.length > 0));
+  const skills = studentProfile?.skills;
+  const researchDomains = studentProfile?.researchDomains;
+  const hasSkills = skills !== undefined && skills !== null && skills.length > 0;
+  const hasDomains = researchDomains !== undefined && researchDomains !== null && researchDomains.length > 0;
+  const hasInterests = studentProfile !== undefined && studentProfile !== null && (hasSkills || hasDomains);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <HeroBanner eyebrow="Your profile" title="Profile" description="Your research profile and activity on INNOVASPHERE" />
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -102,16 +106,16 @@ export default function Profile() {
         <CardContent>
           {hasInterests && studentProfile ? (
             <div className="flex flex-wrap gap-2">
-              {studentProfile.skills.map((s) => (
+              {skills ? skills.map((s) => (
                 <Badge key={s.id} tone="default">
                   {s.name}
                 </Badge>
-              ))}
-              {studentProfile.researchDomains.map((d) => (
+              )) : null}
+              {researchDomains ? researchDomains.map((d) => (
                 <Badge key={d.id} tone="indigo">
                   {d.name}
                 </Badge>
-              ))}
+              )) : null}
             </div>
           ) : (
             <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -136,9 +140,7 @@ export default function Profile() {
               description="Create your first research project to start building a team."
               icon={FolderPlus}
             >
-              <Link to="/projects/create">
-                <Button variant="gradient">Create a project</Button>
-              </Link>
+              <ButtonLink variant="gradient" to="/projects/create">Create a project</ButtonLink>
             </EmptyState>
           ) : (
             <ul className="space-y-3">

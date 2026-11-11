@@ -29,8 +29,9 @@ export function RecommendationCard({
         <>
           <div className={cn('relative h-20 overflow-hidden bg-gradient-to-br', coverGradient(project.title))}>
             <div className="absolute inset-0 bg-grid opacity-25" aria-hidden="true" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-950/5 to-slate-950/20" aria-hidden="true" />
             <div className="absolute -right-4 -top-8 h-24 w-24 rounded-full bg-white/20 blur-2xl transition-transform duration-500 group-hover:scale-150" aria-hidden="true" />
-            <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
+            <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-950/45 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-md">
               <Sparkles className="h-3 w-3" aria-hidden="true" />
               AI match
             </span>
@@ -61,7 +62,7 @@ export function RecommendationCard({
               <Badge tone={projectStatusTone(project.status)}>{projectStatusLabel(project.status)}</Badge>
               <Link
                 to={`/projects/${project.projectId}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 transition group-hover:gap-1.5 dark:text-brand-400"
+                className="focus-ring inline-flex items-center gap-1 rounded text-xs font-semibold text-brand-700 transition group-hover:gap-1.5 dark:text-brand-300"
               >
                 View <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
@@ -74,6 +75,7 @@ export function RecommendationCard({
         <>
           <div className={cn('relative h-12 overflow-hidden bg-gradient-to-br', coverGradient(mentor.name))}>
             <div className="absolute inset-0 bg-grid opacity-25" aria-hidden="true" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/25 to-transparent" aria-hidden="true" />
           </div>
           <div className="flex flex-1 flex-col p-5 pt-0">
             <div className="-mt-7 flex items-end justify-between">
@@ -98,7 +100,7 @@ export function RecommendationCard({
             <div className="mt-4 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
               <Link
                 to={`/mentors/${mentor.mentorId}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 transition group-hover:gap-1.5 dark:text-brand-400"
+                className="focus-ring inline-flex items-center gap-1 rounded text-xs font-semibold text-brand-700 transition group-hover:gap-1.5 dark:text-brand-300"
               >
                 View profile <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>

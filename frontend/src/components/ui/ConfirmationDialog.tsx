@@ -43,8 +43,8 @@ export function ConfirmationDialog({
       }
     >
       <div className="flex items-start gap-3">
-        <div className="rounded-full bg-rose-50 p-2.5 dark:bg-rose-500/10">
-          <TriangleAlert className="h-5 w-5 text-rose-600 dark:text-rose-400" aria-hidden="true" />
+        <div className="rounded-2xl bg-status-rejected-50 p-2.5 ring-1 ring-status-rejected-200/70 dark:bg-status-rejected-500/10 dark:ring-status-rejected-400/20">
+          <TriangleAlert className="h-5 w-5 text-status-rejected-600 dark:text-status-rejected-400" aria-hidden="true" />
         </div>
         <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{message}</p>
       </div>

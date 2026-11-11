@@ -46,8 +46,8 @@ export interface StudentProfileDto {
   department?: string | null;
   yearOfStudy?: number | null;
   bio?: string | null;
-  skills: SkillDto[];
-  researchDomains: ResearchDomainDto[];
+  skills?: SkillDto[] | null;
+  researchDomains?: ResearchDomainDto[] | null;
 }
 
 export interface FacultyProfileDto {

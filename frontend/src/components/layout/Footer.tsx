@@ -34,7 +34,7 @@ export function Footer() {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
+                    className="focus-ring inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
                   >
                     <link.icon className="h-3.5 w-3.5" aria-hidden="true" />
                     {link.label}
@@ -51,7 +51,7 @@ export function Footer() {
                 <li key={link.to}>
                   <Link
                     to={link.to}
-                    className="inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
+                    className="focus-ring inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-slate-600 transition hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-300"
                   >
                     <link.icon className="h-3.5 w-3.5" aria-hidden="true" />
                     {link.label}

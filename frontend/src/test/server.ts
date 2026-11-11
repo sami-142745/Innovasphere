@@ -145,6 +145,8 @@ export const handlers = [
 
   http.get('*/api/mentors/requests/received', () => HttpResponse.json([])),
 
+  http.get('*/api/mentorships/requests/received', () => HttpResponse.json({ content: [], totalElements: 0 })),
+
   http.get('*/api/notifications/count', () => HttpResponse.json({ count: 2 })),
 
   http.get('*/api/notifications', () => HttpResponse.json(makePage(NOTIFICATIONS, NOTIFICATIONS.length, 0, 30))),

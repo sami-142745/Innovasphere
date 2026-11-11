@@ -12,18 +12,18 @@ export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>)
 export function TableHead({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className={cn('border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400', className)}
+      className={cn('border-b border-slate-200 bg-slate-50/90 text-xs uppercase tracking-wide text-slate-500 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-400', className)}
       {...props}
     />
   );
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className={cn('divide-y divide-slate-100 dark:divide-slate-800', className)} {...props} />;
+  return <tbody className={cn('divide-y divide-slate-100 dark:divide-white/[0.06]', className)} {...props} />;
 }
 
 export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn('transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40', className)} {...props} />;
+  return <tr className={cn('transition-colors hover:bg-brand-50/60 dark:hover:bg-brand-500/[0.06]', className)} {...props} />;
 }
 
 export function TableHeadCell({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {

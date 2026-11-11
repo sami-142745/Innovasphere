@@ -2,7 +2,7 @@ import { cn } from '../../utils/cn';
 
 export function Skeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('shimmer-animate rounded-lg', className)} aria-hidden="true">
+    <div className={cn('shimmer-animate rounded-lg border border-slate-200/60 dark:border-white/[0.06]', className)} aria-hidden="true">
       <div className="absolute inset-0 -translate-x-full animate-shimmer" aria-hidden="true" />
     </div>
   );

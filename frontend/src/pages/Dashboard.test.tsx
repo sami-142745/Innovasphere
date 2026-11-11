@@ -1,8 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import DashboardPage from './Dashboard';
+import DashboardPage, { FacultyDashboard } from './Dashboard';
 import { renderWithProviders } from '../test/render';
 import { makeAuth, makeUser } from '../test/fixtures';
+import { mentorService } from '../services/mentors';
+
+vi.mock('../services/mentors', () => ({
+  mentorService: {
+    receivedRequests: vi.fn()
+  }
+}));
 
 describe('StudentDashboard', () => {
   it('renders overview stats and recommendations', async () => {
@@ -25,5 +32,41 @@ describe('AdminDashboard', () => {
 
     expect(await screen.findByText('Admin overview')).toBeInTheDocument();
     expect(screen.getByText('Open admin dashboard')).toBeInTheDocument();
+  });
+});
+
+describe('FacultyDashboard', () => {
+  it('renders without crashing when receivedRequests returns an array', async () => {
+    vi.mocked(mentorService.receivedRequests).mockResolvedValue([]);
+
+    renderWithProviders(<FacultyDashboard />, {
+      route: '/dashboard',
+      auth: makeAuth({ user: makeUser({ role: 'FACULTY' }) })
+    });
+    expect(await screen.findByText('No pending requests')).toBeInTheDocument();
+  });
+
+  it('renders pending requests returned by receivedRequests', async () => {
+    vi.mocked(mentorService.receivedRequests).mockResolvedValue([
+      {
+        id: 'mr-1',
+        studentId: 'u-1',
+        studentName: 'Ada Lovelace',
+        facultyId: 'u-2',
+        facultyName: 'Grace Hopper',
+        projectId: 'p-1',
+        projectTitle: 'Neural Interface Design',
+        status: 'PENDING',
+        message: 'I would love to join your research group.',
+        createdAt: '2026-02-01T10:30:00Z'
+      }
+    ]);
+
+    renderWithProviders(<FacultyDashboard />, {
+      route: '/dashboard',
+      auth: makeAuth({ user: makeUser({ role: 'FACULTY' }) })
+    });
+    expect(await screen.findByText('Ada Lovelace')).toBeInTheDocument();
+    expect(screen.getByText('Pending mentorship requests')).toBeInTheDocument();
   });
 });

@@ -60,7 +60,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       <HeroBanner accent="faculty" eyebrow="Your profile" title="Profile" description="Your faculty profile and mentorship activity" />
 
       <div className="grid gap-6 lg:grid-cols-2">

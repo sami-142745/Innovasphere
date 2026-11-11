@@ -15,6 +15,8 @@ import { motion } from 'framer-motion';
 import { extractApiError } from '../../api/client';
 import { Button, CardSkeleton, EmptyState, ErrorState } from '../../components/ui';
 import { FilterChips, type ChipOption } from '../../components/shared/FilterChips';
+import { HeroBanner } from '../../components/shared/HeroBanner';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { useToast } from '../../context/ToastContext';
 import { useAsync } from '../../hooks/useAsync';
 import { notificationService } from '../../services/notifications';
@@ -45,6 +47,7 @@ export default function NotificationsPage() {
   const [items, setItems] = useState<NotificationDto[]>([]);
   const [filter, setFilter] = useState('all');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (data) setItems(data.content);
@@ -122,23 +125,26 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="relative mx-auto w-full">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-[28px] dark:text-slate-50">Notifications</h1>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+    <div className="relative mx-auto max-w-7xl w-full">
+      <HeroBanner
+        eyebrow="Notifications"
+        title="Notifications"
+        description={
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}` : 'You are all caught up.'}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => void handleMarkAllRead()} disabled={unreadCount === 0}>
-            <CheckCheck className="h-4 w-4" aria-hidden="true" /> Mark all read
-          </Button>
-          <Button variant="ghost" size="sm" onClick={reload} aria-label="Refresh notifications">
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </div>
-      </div>
+          </span>
+        }
+        actions={
+          <div className="flex shrink-0 items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => void handleMarkAllRead()} disabled={unreadCount === 0}>
+              <CheckCheck className="h-4 w-4" aria-hidden="true" /> Mark all read
+            </Button>
+            <Button variant="ghost" size="sm" onClick={reload} aria-label="Refresh notifications">
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+        }
+      />
 
       <FilterChips className="mb-6" options={FILTER_OPTIONS} active={filter} onSelect={setFilter} deselectValue="all" />
 
@@ -161,16 +167,15 @@ export default function NotificationsPage() {
             return (
               <motion.li
                 key={notification.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={reducedMotion ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.03 }}
+                transition={reducedMotion ? {} : { delay: idx * 0.03 }}
               >
                 <div
                   className={cn(
                     'glass-panel flex items-start gap-4 rounded-panel p-4 transition-all duration-200',
                     unread && 'border-brand-300/60 dark:border-brand-400/25'
                   )}
-                  onClick={unread ? () => void handleMarkRead(notification) : undefined}
                 >
                   <span className={cn('relative mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-white', style.gradient)}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -202,7 +207,7 @@ export default function NotificationsPage() {
                         void handleMarkRead(notification);
                       }}
                       aria-label={`Mark read: ${notification.title}`}
-                      className="hidden shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600 sm:inline-flex dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
+                      className="focus-ring shrink-0 inline-flex rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
                     >
                       <CheckCheck className="h-4 w-4" aria-hidden="true" />
                     </button>
@@ -215,7 +220,7 @@ export default function NotificationsPage() {
                       void handleDelete(notification);
                     }}
                     aria-label={`Delete notification: ${notification.title}`}
-                    className="shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
+                    className="focus-ring shrink-0 rounded-lg p-1.5 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </button>

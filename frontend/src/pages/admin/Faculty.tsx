@@ -172,7 +172,7 @@ export default function Faculty() {
             title="Mentors by department (derived)"
             description="From the mentors on this page"
             data={deptData}
-            color="#6366f1"
+            color="#7c3aed"
           />
         </div>
       </Card>

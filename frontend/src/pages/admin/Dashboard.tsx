@@ -179,7 +179,7 @@ export default function Dashboard() {
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             <DonutChartCard title="Projects by status" description="From the latest 100 projects" data={statusData} />
-            <BarChartCard title="Users by role (derived)" description="Distinct project owners plus faculty mentors" data={roleData} color="#6366f1" />
+            <BarChartCard title="Users by role (derived)" description="Distinct project owners plus faculty mentors" data={roleData} color="#7c3aed" />
             <TrendChartCard title="Notification activity (14 days)" description="From the latest 100 notifications" data={trendData} />
           </div>
         </>
