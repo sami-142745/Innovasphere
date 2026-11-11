@@ -29,11 +29,21 @@ export const mentorService = {
   },
 
   myRequests(): Promise<MentorshipRequestDto[]> {
-    return api.get('/api/mentorships/requests/my').then((r) => r.data);
+    return api.get('/api/mentorships/requests/my').then((r) => {
+      const data = r.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.content)) return data.content;
+      return [];
+    });
   },
 
   receivedRequests(): Promise<MentorshipRequestDto[]> {
-    return api.get('/api/mentorships/requests/received').then((r) => r.data);
+    return api.get('/api/mentorships/requests/received').then((r) => {
+      const data = r.data;
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.content)) return data.content;
+      return [];
+    });
   },
 
   decideRequest(id: string, status: Exclude<RequestStatus, 'PENDING'>): Promise<MentorshipRequestDto> {

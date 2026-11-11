@@ -155,7 +155,12 @@ export const projectService = {
 
   myJoinRequests(): Promise<JoinRequestDto[]> {
     return deduplicateRequest('my-join-requests', (c) =>
-      timedApiCall(() => api.get('/api/join-requests/my', { signal: c.signal }).then((r) => r.data))
+      timedApiCall(() => api.get('/api/join-requests/my', { signal: c.signal }).then((r) => {
+        const data = r.data;
+        if (Array.isArray(data)) return data;
+        if (data && Array.isArray(data.content)) return data.content;
+        return [];
+      }))
     );
   }
 };

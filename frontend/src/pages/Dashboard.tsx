@@ -245,7 +245,7 @@ function StudentDashboard() {
   );
 }
 
-function FacultyDashboard() {
+export function FacultyDashboard() {
   const toastHelper = useToast();
   const { user } = useAuth();
   const { count: unreadCount } = useUnreadCount();
