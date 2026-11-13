@@ -49,19 +49,18 @@ export function makeProject(overrides: Partial<ProjectSummaryDto> = {}): Project
     owner: {
       id: 'u-1',
       username: 'ada.lovelace',
-      email: 'ada@university.edu',
       fullName: 'Ada Lovelace',
       role: 'STUDENT',
-      active: true,
+      department: 'Computer Science',
       createdAt: '2026-01-10T09:00:00Z'
     },
     domain: 'Artificial Intelligence',
     domains: [{ id: 'd1', name: 'Artificial Intelligence' }],
     skills: [{ id: 's1', name: 'Mathematics' }, { id: 's2', name: 'Python' }],
     mentorName: 'Ada Lovelace',
-    teamSize: 4,
     maxTeamSize: 4,
     memberCount: 2,
+    teamCount: 1,
     createdAt: '2026-02-01T10:30:00Z',
     ...overrides
   };

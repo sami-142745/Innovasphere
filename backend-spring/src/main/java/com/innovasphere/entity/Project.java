@@ -14,6 +14,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.HashSet;
@@ -75,6 +77,12 @@ public class Project extends BaseEntity {
     @Size(max = 500)
     @Column(name = "repository_url", length = 500)
     private String repositoryUrl;
+
+    @Min(1)
+    @Max(100)
+    @Column(name = "max_team_size")
+    @Builder.Default
+    private Integer maxTeamSize = 10;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

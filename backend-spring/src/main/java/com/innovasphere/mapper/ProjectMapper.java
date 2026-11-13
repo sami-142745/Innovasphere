@@ -3,8 +3,10 @@ package com.innovasphere.mapper;
 import com.innovasphere.dto.ProjectDto;
 import com.innovasphere.dto.ProjectSummaryDto;
 import com.innovasphere.dto.SkillDto;
+import com.innovasphere.dto.UserSummaryDto;
 import com.innovasphere.entity.Project;
 import com.innovasphere.entity.ProjectSkill;
+import com.innovasphere.entity.User;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -12,17 +14,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProjectMapper {
 
+    private static final int DEFAULT_MAX_TEAM_SIZE = 10;
+
     private final SkillMapper skillMapper;
     private final ResearchDomainMapper researchDomainMapper;
-    private final UserMapper userMapper;
 
     public ProjectMapper(
             SkillMapper skillMapper,
-            ResearchDomainMapper researchDomainMapper,
-            UserMapper userMapper) {
+            ResearchDomainMapper researchDomainMapper) {
         this.skillMapper = skillMapper;
         this.researchDomainMapper = researchDomainMapper;
-        this.userMapper = userMapper;
     }
 
     /**
@@ -47,6 +48,7 @@ public class ProjectMapper {
                 : null;
 
         int teamCount = project.getTeams() == null ? 0 : project.getTeams().size();
+        int memberCount = project.getMembers() == null ? 0 : project.getMembers().size();
 
         return new ProjectSummaryDto(
                 project.getId(),
@@ -54,8 +56,10 @@ public class ProjectMapper {
                 project.getShortDescription(),
                 project.getStatus(),
                 domain,
+                toOwner(project.getOwner()),
                 mentorName,
-                teamCount,
+                memberCount,
+                capacityOf(project),
                 teamCount,
                 project.getCreatedAt());
     }
@@ -72,13 +76,32 @@ public class ProjectMapper {
                 project.getDescription(),
                 project.getStatus(),
                 project.getRepositoryUrl(),
-                userMapper.toDto(project.getOwner()),
+                toOwner(project.getOwner()),
                 researchDomainMapper.toDtoSet(project.getResearchDomains()),
                 toSkillDtos(project.getSkills()),
-                project.getTeams() == null ? 0 : project.getTeams().size(),
                 project.getMembers() == null ? 0 : project.getMembers().size(),
+                capacityOf(project),
+                project.getTeams() == null ? 0 : project.getTeams().size(),
                 project.getCreatedAt(),
                 project.getUpdatedAt());
+    }
+
+    private UserSummaryDto toOwner(User owner) {
+        if (owner == null) {
+            return null;
+        }
+        return new UserSummaryDto(
+                owner.getId(),
+                owner.getFullName(),
+                owner.getUsername(),
+                owner.getRole(),
+                null,
+                null,
+                owner.getCreatedAt());
+    }
+
+    private int capacityOf(Project project) {
+        return project.getMaxTeamSize() != null ? project.getMaxTeamSize() : DEFAULT_MAX_TEAM_SIZE;
     }
 
     private Set<SkillDto> toSkillDtos(Set<ProjectSkill> projectSkills) {

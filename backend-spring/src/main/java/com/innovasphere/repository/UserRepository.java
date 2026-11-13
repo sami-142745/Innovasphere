@@ -22,6 +22,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Page<User> findByRole(Role role, Pageable pageable);
 
+    long countByRoleAndActive(Role role, boolean active);
+
+    long countByRole(Role role);
+
+    long countByActive(boolean active);
+
     @Query("""
         select u from User u
         where (:keyword is null

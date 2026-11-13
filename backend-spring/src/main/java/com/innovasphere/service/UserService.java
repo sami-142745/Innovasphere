@@ -33,10 +33,10 @@ public class UserService {
             user.getId(),
             user.getFullName(),
             user.getUsername(),
-            user.getEmail(),
             user.getRole(),
             departmentOf(user),
-            null
+            null,
+            user.getCreatedAt()
         );
     }
 

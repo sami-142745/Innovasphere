@@ -19,6 +19,9 @@ export default defineConfig({
   // chunks on first request. Allow a little more than the 5s default so cold
   // compiles do not flake otherwise-correct assertions.
   expect: { timeout: 10_000 },
+  // Under full parallelism the dev server can take longer than the 30s default
+  // to compile lazy chunks and tear the browser context down.
+  timeout: 60_000,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'list' : 'html',
   webServer: {

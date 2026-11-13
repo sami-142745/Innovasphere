@@ -289,7 +289,7 @@ test.describe('Forms, profiles and settings', () => {
 test.describe('Notifications', () => {
   test('renders hero banner header, filters and list @notifications', async ({ page }) => {
     await authenticate(page, STUDENT_USER, '/notifications');
-    await expect(page.getByRole('heading', { name: /notifications/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Notifications', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /mark all read/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /refresh notifications/i })).toBeVisible();
   });
@@ -314,7 +314,7 @@ test.describe('Admin management', () => {
 
   test('admin users page renders a table @admin', async ({ page }) => {
     await authenticate(page, ADMIN_USER, '/admin/users');
-    await expect(page.getByRole('heading', { name: /users & community/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^Users$/i })).toBeVisible();
     await expect(page.getByRole('table')).toBeVisible();
   });
 
@@ -342,7 +342,7 @@ test.describe('Reduced motion', () => {
 
   test('notifications render without animation errors under reduced motion @a11y', async ({ page }) => {
     await authenticate(page, STUDENT_USER, '/notifications');
-    await expect(page.getByRole('heading', { name: /notifications/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Notifications', exact: true })).toBeVisible();
   });
 });
 

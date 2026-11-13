@@ -81,6 +81,7 @@ public class ProjectServiceImpl implements ProjectService {
             .description(request.description().trim())
             .status(status)
             .repositoryUrl(request.repositoryUrl() != null ? request.repositoryUrl().trim() : null)
+            .maxTeamSize(request.maxTeamSize() != null ? request.maxTeamSize() : 10)
             .build();
 
         if (request.researchDomainIds() != null) {
@@ -115,6 +116,9 @@ public class ProjectServiceImpl implements ProjectService {
         }
         if (request.repositoryUrl() != null) {
             project.setRepositoryUrl(request.repositoryUrl().trim());
+        }
+        if (request.maxTeamSize() != null) {
+            project.setMaxTeamSize(request.maxTeamSize());
         }
         if (request.researchDomainIds() != null) {
             project.getResearchDomains().clear();

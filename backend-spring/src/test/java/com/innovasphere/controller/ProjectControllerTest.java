@@ -63,7 +63,11 @@ class ProjectControllerTest {
                 .content("{\"title\":\"" + unique("New Project") + "\",\"description\":\"A research project description.\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.title").isNotEmpty())
-            .andExpect(jsonPath("$.owner.email").isNotEmpty())
+            .andExpect(jsonPath("$.owner.fullName").isNotEmpty())
+            .andExpect(jsonPath("$.owner.email").doesNotExist())
+            .andExpect(jsonPath("$.memberCount").value(0))
+            .andExpect(jsonPath("$.maxTeamSize").value(10))
+            .andExpect(jsonPath("$.teamCount").value(0))
             .andExpect(jsonPath("$.status").value("IDEA"))
             .andExpect(jsonPath("$.domains").isArray())
             .andExpect(jsonPath("$.skills").isArray());
@@ -84,7 +88,9 @@ class ProjectControllerTest {
         mockMvc.perform(get("/api/projects/" + projectId))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(projectId))
-            .andExpect(jsonPath("$.owner.email").isNotEmpty());
+            .andExpect(jsonPath("$.owner.fullName").isNotEmpty())
+            .andExpect(jsonPath("$.owner.email").doesNotExist())
+            .andExpect(jsonPath("$.maxTeamSize").value(10));
     }
 
     @Test
@@ -112,7 +118,11 @@ class ProjectControllerTest {
         createProject(token, "Other Project", "Unrelated description here.");
         mockMvc.perform(get("/api/projects/search").param("keyword", keyword))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.content[0].title").value(org.hamcrest.Matchers.containsString(keyword)));
+            .andExpect(jsonPath("$.content[0].title").value(org.hamcrest.Matchers.containsString(keyword)))
+            .andExpect(jsonPath("$.content[0].owner.fullName").isNotEmpty())
+            .andExpect(jsonPath("$.content[0].memberCount").value(0))
+            .andExpect(jsonPath("$.content[0].maxTeamSize").value(10))
+            .andExpect(jsonPath("$.content[0].teamCount").value(0));
     }
 
     @Test

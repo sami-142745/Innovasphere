@@ -17,6 +17,7 @@ export interface ProjectFormValues {
   description: string;
   shortDescription: string;
   repositoryUrl: string;
+  maxTeamSize: number;
   status: ProjectStatus | '';
 }
 
@@ -41,6 +42,11 @@ export function ProjectForm({ project, onSuccess }: { project?: ProjectDto; onSu
         .optional()
         .or(z.literal(''))
         .refine((v) => !v || /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/.*)?$/i.test(v), 'Enter a valid URL'),
+      maxTeamSize: z.coerce
+        .number()
+        .int('Team capacity must be a whole number')
+        .min(1, 'Team capacity must be at least 1')
+        .max(100, 'Team capacity must be at most 100'),
       status: z.enum(['', 'IDEA', 'LOOKING_FOR_TEAM', 'IN_PROGRESS', 'UNDER_REVIEW', 'COMPLETED'])
     })
     .superRefine((v, ctx) => {
@@ -62,6 +68,7 @@ export function ProjectForm({ project, onSuccess }: { project?: ProjectDto; onSu
       description: project?.description ?? '',
       shortDescription: project?.shortDescription ?? '',
       repositoryUrl: project?.repositoryUrl ?? '',
+      maxTeamSize: project?.maxTeamSize ?? 10,
       status: (project?.status ?? '') as FormValues['status']
     }
   });
@@ -73,6 +80,7 @@ export function ProjectForm({ project, onSuccess }: { project?: ProjectDto; onSu
         description: values.description,
         shortDescription: values.shortDescription || null,
         repositoryUrl: values.repositoryUrl || null,
+        maxTeamSize: values.maxTeamSize,
         status: (values.status || 'IDEA') as ProjectStatus,
         researchDomainIds: project?.domains?.map((d) => d.id) ?? [],
         skillIds: project?.skills?.map((s) => s.id) ?? []
@@ -122,13 +130,22 @@ export function ProjectForm({ project, onSuccess }: { project?: ProjectDto; onSu
           <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">Min 10 characters.</p>
         )}
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Input
           label="Repository URL"
           placeholder="https://github.com/your-repo"
-          hint="Optional · public repo the team works from."
+          hint="Optional – public repo the team works from."
           {...register('repositoryUrl')}
           error={errors.repositoryUrl?.message}
+        />
+        <Input
+          label="Maximum team size"
+          type="number"
+          min={1}
+          max={100}
+          hint="Members the project can support."
+          {...register('maxTeamSize')}
+          error={errors.maxTeamSize?.message}
         />
         <Select
           label="Status"

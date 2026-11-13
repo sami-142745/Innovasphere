@@ -18,7 +18,7 @@ describe('ProjectCard', () => {
     expect(screen.getByText('A novel brain-computer interface for accessibility.')).toBeInTheDocument();
     expect(screen.getByText('Artificial Intelligence')).toBeInTheDocument();
     expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
-    expect(screen.getByText('4/4')).toBeInTheDocument();
+    expect(screen.getByText('2/4')).toBeInTheDocument();
   });
 
   it('shows short description', () => {

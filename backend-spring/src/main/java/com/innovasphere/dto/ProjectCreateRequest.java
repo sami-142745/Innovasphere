@@ -1,6 +1,8 @@
 package com.innovasphere.dto;
 
 import com.innovasphere.enums.ProjectStatus;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Set;
@@ -22,6 +24,10 @@ public record ProjectCreateRequest(
 
     @Size(max = 500, message = "Repository URL must be at most 500 characters")
     String repositoryUrl,
+
+    @Min(value = 1, message = "Maximum team size must be at least 1")
+    @Max(value = 100, message = "Maximum team size must be at most 100")
+    Integer maxTeamSize,
 
     Set<UUID> researchDomainIds,
 

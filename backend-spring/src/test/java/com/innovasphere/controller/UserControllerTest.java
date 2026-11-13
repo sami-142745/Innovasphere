@@ -94,7 +94,8 @@ class UserControllerTest {
             .andExpect(jsonPath("$.content.length()").value(1))
             .andExpect(jsonPath("$.content[0].id").value(alice.id()))
             .andExpect(jsonPath("$.content[0].username").value(aliceUsername))
-            .andExpect(jsonPath("$.content[0].email").isNotEmpty())
+            .andExpect(jsonPath("$.content[0].fullName").value("Alice Test"))
+            .andExpect(jsonPath("$.content[0].email").doesNotExist())
             .andExpect(jsonPath("$.content[0].role").isNotEmpty());
     }
 
@@ -125,7 +126,8 @@ class UserControllerTest {
                 .header("Authorization", "Bearer " + student.token()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.content.length()").value(1))
-            .andExpect(jsonPath("$.content[0].email").value(adminEmail));
+            .andExpect(jsonPath("$.content[0].fullName").value("Dir Admin"))
+            .andExpect(jsonPath("$.content[0].email").doesNotExist());
     }
 
     @Test

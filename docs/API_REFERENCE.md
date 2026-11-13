@@ -113,7 +113,8 @@ Status codes: `200` ok · `401` unauthenticated · `404` user record missing.
 ## Users & Profiles
 
 User data is returned embedded inside projects, teams, mentorships and notifications as
-`UserSummaryDto`: `{ "id", "fullName", "username", "role", "avatarColor?", "createdAt" }`.
+`UserSummaryDto`: `{ "id", "fullName", "username", "role", "department", "avatar", "createdAt" }`.
+Email addresses are only exposed by the admin user directory (`AdminUserDto`).
 
 Profile endpoints (role-gated):
 - `GET /api/student/profile/{userId}` — returns `StudentProfileDto` (authenticated)
@@ -141,11 +142,12 @@ Response `200` — `Page<ProjectSummaryDto>`:
       "title": "Quantum Error Correction",
       "shortDescription": "Fault-tolerant qubit stabilisation",
       "status": "ACTIVE",
-      "owner": { "id": "u1", "fullName": "Prof. Ayesha Khan", "role": "FACULTY" },
-      "researchDomains": [{ "id": "d1", "name": "AI/ML" }],
-      "skills": [{ "id": "s1", "name": "Python" }],
-      "teamSize": 1,
+      "domain": "AI/ML",
+      "owner": { "id": "u1", "fullName": "Prof. Ayesha Khan", "username": "ayesha", "role": "FACULTY" },
+      "mentorName": "Prof. Ayesha Khan",
       "memberCount": 2,
+      "maxTeamSize": 10,
+      "teamCount": 1,
       "createdAt": "2026-09-20T09:30:00Z"
     }
   ],
@@ -175,7 +177,8 @@ Request example:
   "description": "Long-form proposal...",
   "researchDomainIds": ["d1", "d2"],
   "skillIds": ["s1"],
-  "repositoryUrl": "https://github.com/uni/qec"
+  "repositoryUrl": "https://github.com/uni/qec",
+  "maxTeamSize": 10
 }
 ```
 
@@ -185,7 +188,8 @@ Status codes: `201` created · `400` validation · `401` unauthenticated · `403
 ### `GET /api/projects/{id}`
 Authentication: **none**
 
-Response `200` — `ProjectDto` (includes `repositoryUrl`, `updatedAt`).
+Response `200` — `ProjectDto` (includes `description`, `repositoryUrl`, `domains`, `skills`,
+`memberCount`, `maxTeamSize`, `teamCount`, `updatedAt`).
 Status codes: `200` ok · `404` project not found.
 
 ### `PUT /api/projects/{id}`
@@ -389,31 +393,62 @@ Status codes: `201` created · `409` domain already exists.
 
 All admin endpoints require `ROLE_ADMIN`.
 
-### `GET /api/admin/dashboard`
+### `GET /api/admin/stats`
 Auth: **Bearer** (admin)
-Response `200` — stats overview (user count, project count, active mentorships, recent signups).
+Response `200`:
+```json
+{
+  "totalUsers": 120,
+  "studentUsers": 100,
+  "facultyUsers": 18,
+  "adminUsers": 2,
+  "activeUsers": 115,
+  "totalProjects": 34
+}
+```
 
 ### `GET /api/admin/users`
 Auth: **Bearer** (admin)
-Query: `keyword`, `role`, `page`, `size`. Response `200` — `Page<UserProfileDto>`.
+Query: `keyword` (matches username, full name or email), `role`
+(`STUDENT|FACULTY|ADMIN`), `page`, `size`, `sort`. Response `200` — `Page<AdminUserDto>`:
+```json
+{
+  "content": [
+    {
+      "id": "u1",
+      "username": "ayesha",
+      "email": "ayesha@university.edu",
+      "fullName": "Prof. Ayesha Khan",
+      "role": "FACULTY",
+      "active": true,
+      "department": "Computer Science",
+      "createdAt": "2026-09-20T09:30:00Z"
+    }
+  ],
+  "totalElements": 1,
+  "totalPages": 1,
+  "number": 0,
+  "size": 20
+}
+```
 
 ### `PATCH /api/admin/users/{id}/status`
 Auth: **Bearer** (admin)
-Request example: `{ "active": false }` (suspend/reactivate). Response `200` — `UserProfileDto`.
-Status codes: `200` ok · `400` cannot disable self/admin · `404` user not found.
+Request example: `{ "active": false }` (suspend/reactivate). Response `200` — `AdminUserDto`.
+Status codes: `200` ok · `400` cannot disable self (`CANNOT_DISABLE_SELF`) or the last active
+administrator (`LAST_ADMIN`) · `404` user not found.
 
-### `GET /api/admin/projects`
+### `POST /api/admin/notifications`
 Auth: **Bearer** (admin)
-Query: `keyword`, `status`, `page`, `size`. Response `200` — `Page<ProjectSummaryDto>`.
+Broadcast: `{ "title": "...", "message": "..." }`. Response `204 No Content`.
 
-### `PATCH /api/admin/projects/{id}/status`
+### `POST /api/admin/skills` · `DELETE /api/admin/skills/{id}`
 Auth: **Bearer** (admin)
-Request example: `{ "status": "COMPLETED" }`. Response `200` — `ProjectSummaryDto`.
-Status codes: `200` ok · `404` project not found.
+Create or delete a skill. Response `201` created / `204` deleted.
 
-### `GET /api/admin/faculty`
+### `POST /api/admin/research-domains` · `DELETE /api/admin/research-domains/{id}`
 Auth: **Bearer** (admin)
-Response `200` — `Page<MentorDto>` of all faculty profiles.
+Create or delete a research domain. Response `201` created / `204` deleted.
 
 ---
 

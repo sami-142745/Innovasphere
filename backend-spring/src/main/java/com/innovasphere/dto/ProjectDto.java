@@ -12,11 +12,12 @@ public record ProjectDto(
     String description,
     ProjectStatus status,
     String repositoryUrl,
-    UserDto owner,
+    UserSummaryDto owner,
     Set<ResearchDomainDto> domains,
     Set<SkillDto> skills,
-    int teamSize,
     int memberCount,
+    int maxTeamSize,
+    int teamCount,
     Instant createdAt,
     Instant updatedAt
 ) {

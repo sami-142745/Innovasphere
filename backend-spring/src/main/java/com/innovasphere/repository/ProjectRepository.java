@@ -35,8 +35,18 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.shortDescription,
             p.status,
             (select min(d.name) from p.researchDomains d),
+            new com.innovasphere.dto.UserSummaryDto(
+                p.owner.id,
+                p.owner.fullName,
+                p.owner.username,
+                p.owner.role,
+                null,
+                null,
+                p.owner.createdAt
+            ),
             p.owner.fullName,
-            size(p.teams),
+            size(p.members),
+            coalesce(p.maxTeamSize, 10),
             size(p.teams),
             p.createdAt
         )
@@ -51,8 +61,18 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.shortDescription,
             p.status,
             (select min(d.name) from p.researchDomains d),
+            new com.innovasphere.dto.UserSummaryDto(
+                p.owner.id,
+                p.owner.fullName,
+                p.owner.username,
+                p.owner.role,
+                null,
+                null,
+                p.owner.createdAt
+            ),
             p.owner.fullName,
-            size(p.teams),
+            size(p.members),
+            coalesce(p.maxTeamSize, 10),
             size(p.teams),
             p.createdAt
         )
@@ -70,8 +90,18 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.shortDescription,
             p.status,
             (select min(d.name) from p.researchDomains d),
+            new com.innovasphere.dto.UserSummaryDto(
+                p.owner.id,
+                p.owner.fullName,
+                p.owner.username,
+                p.owner.role,
+                null,
+                null,
+                p.owner.createdAt
+            ),
             p.owner.fullName,
-            size(p.teams),
+            size(p.members),
+            coalesce(p.maxTeamSize, 10),
             size(p.teams),
             p.createdAt
         )
@@ -89,8 +119,18 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
             p.shortDescription,
             p.status,
             (select min(d.name) from p.researchDomains d),
+            new com.innovasphere.dto.UserSummaryDto(
+                p.owner.id,
+                p.owner.fullName,
+                p.owner.username,
+                p.owner.role,
+                null,
+                null,
+                p.owner.createdAt
+            ),
             p.owner.fullName,
-            size(p.teams),
+            size(p.members),
+            coalesce(p.maxTeamSize, 10),
             size(p.teams),
             p.createdAt
         )

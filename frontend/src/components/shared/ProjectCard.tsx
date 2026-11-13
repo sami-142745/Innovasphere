@@ -61,7 +61,7 @@ export const ProjectCard = memo(function ProjectCard({ project, matchScore }: { 
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-100 dark:bg-brand-500/10 dark:text-brand-200 dark:ring-brand-400/20">
               <Users className="h-3.5 w-3.5" aria-hidden="true" />
-              {formatTeamSize(project.teamSize, project.maxTeamSize)}
+              {formatTeamSize(project.memberCount ?? 0, project.maxTeamSize)}
             </span>
             <ArrowRight className="h-4 w-4 -translate-x-1 text-accent-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100 dark:text-accent-400" aria-hidden="true" />
           </div>

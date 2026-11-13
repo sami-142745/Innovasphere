@@ -9,7 +9,7 @@ public record TeamDto(
     UUID projectId,
     String name,
     String description,
-    Set<UserDto> members,
+    Set<UserSummaryDto> members,
     Instant createdAt
 ) {
 }

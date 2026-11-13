@@ -75,11 +75,11 @@ class ProjectServiceTest {
 
     private ProjectCreateRequest createRequest(ProjectStatus status, Set<UUID> domains, Set<UUID> skills) {
         return new ProjectCreateRequest("  My Project  ", "A long enough description for the project", "short",
-            status, null, domains, skills);
+            status, null, null, domains, skills);
     }
 
     private ProjectUpdateRequest updateRequest() {
-        return new ProjectUpdateRequest("New Title", null, null, null, null, null, null);
+        return new ProjectUpdateRequest("New Title", null, null, null, null, null, null, null);
     }
 
     @Test
@@ -194,7 +194,7 @@ class ProjectServiceTest {
         UUID s1 = UUID.randomUUID();
         when(researchDomainRepository.findById(d1)).thenReturn(Optional.of(ResearchDomain.builder().name("AI").build()));
         when(skillRepository.findById(s1)).thenReturn(Optional.of(Skill.builder().name("Java").build()));
-        ProjectUpdateRequest request = new ProjectUpdateRequest(null, null, null, null, null, Set.of(d1), Set.of(s1));
+        ProjectUpdateRequest request = new ProjectUpdateRequest(null, null, null, null, null, null, Set.of(d1), Set.of(s1));
 
         projectService.update(owner, project.getId(), request);
 
@@ -265,9 +265,11 @@ class ProjectServiceTest {
             "Short description",
             ProjectStatus.IN_PROGRESS,
             "Artificial Intelligence",
+            null,
             "Dr. John Doe",
             2,
             5,
+            1,
             Instant.now());
         Page<ProjectSummaryDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1);
         when(projectRepository.searchSummary(eq(null), eq(null), eq(null), eq(null), any(Pageable.class)))
@@ -284,9 +286,11 @@ class ProjectServiceTest {
             "Short description",
             ProjectStatus.IN_PROGRESS,
             "Artificial Intelligence",
+            null,
             "Dr. John Doe",
             2,
             5,
+            1,
             Instant.now());
         Page<ProjectSummaryDto> page = new PageImpl<>(List.of(dto), PageRequest.of(0, 20), 1);
         when(projectRepository.searchSummary(eq("ai"), eq(ProjectStatus.IDEA), eq("ml"), eq("python"), any(Pageable.class)))
@@ -311,7 +315,7 @@ class ProjectServiceTest {
         project.setStatus(ProjectStatus.COMPLETED);
         when(projectRepository.findById(project.getId())).thenReturn(Optional.of(project));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
-        ProjectUpdateRequest request = new ProjectUpdateRequest("  Updated  ", null, "  ", null, null, null, null);
+        ProjectUpdateRequest request = new ProjectUpdateRequest("  Updated  ", null, "  ", null, null, null, null, null);
         projectService.update(owner, project.getId(), request);
         assertEquals(ProjectStatus.COMPLETED, project.getStatus());
         assertEquals("Updated", project.getTitle());

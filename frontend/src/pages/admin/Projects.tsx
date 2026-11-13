@@ -161,7 +161,7 @@ export default function Projects() {
                     <Badge tone={projectStatusTone(p.status)}>{projectStatusLabel(p.status)}</Badge>
                   </TableCell>
                   <TableCell>
-                    {(p.memberCount ?? 0)}/{p.teamSize}
+                    {(p.memberCount ?? 0)}/{p.maxTeamSize ?? 10}
                   </TableCell>
                   <TableCell>{formatDate(p.createdAt)}</TableCell>
                 </TableRow>

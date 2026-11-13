@@ -106,14 +106,16 @@ export default function Dashboard() {
   const mentors = useAsync(() => mentorService.list(0, 100), []);
   const notifications = useAsync(() => notificationService.list(0, 100), []);
   const unread = useAsync(() => notificationService.unreadCount(), []);
+  const stats = useAsync(() => adminService.stats(), []);
 
-  const ready = Boolean(projects.data && mentors.data && notifications.data && unread.data);
-  const error = projects.error || mentors.error || notifications.error || unread.error;
+  const ready = Boolean(projects.data && mentors.data && notifications.data && unread.data && stats.data);
+  const error = projects.error || mentors.error || notifications.error || unread.error || stats.error;
   const retry = () => {
     projects.reload();
     mentors.reload();
     notifications.reload();
     unread.reload();
+    stats.reload();
   };
 
   const statusCounts: Record<string, number> = {};
@@ -125,16 +127,10 @@ export default function Dashboard() {
     value: statusCounts[s.value] ?? 0
   }));
 
-  const studentOwners = new Set<string>();
-  const facultyOwners = new Set<string>();
-  for (const p of projects.data?.content ?? []) {
-    if (p.owner?.role === 'STUDENT') studentOwners.add(p.owner?.id ?? '');
-    else if (p.owner?.role === 'FACULTY') facultyOwners.add(p.owner?.id ?? '');
-  }
   const roleData: SeriesDatum[] = [];
-  if (studentOwners.size > 0) roleData.push({ label: 'Student', value: studentOwners.size });
-  const facultyCount = facultyOwners.size + (mentors.data?.totalElements ?? 0);
-  if (facultyCount > 0) roleData.push({ label: 'Faculty', value: facultyCount });
+  if ((stats.data?.studentUsers ?? 0) > 0) roleData.push({ label: 'Student', value: stats.data!.studentUsers });
+  if ((stats.data?.facultyUsers ?? 0) > 0) roleData.push({ label: 'Faculty', value: stats.data!.facultyUsers });
+  if ((stats.data?.adminUsers ?? 0) > 0) roleData.push({ label: 'Admin', value: stats.data!.adminUsers });
 
   const trendData = buildActivitySeries(notifications.data?.content ?? [], 14);
 
@@ -171,15 +167,15 @@ export default function Dashboard() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Total projects" value={projects.data!.totalElements} icon={FolderKanban} hint="From project search" />
-            <StatCard label="Faculty mentors" value={mentors.data!.totalElements} icon={GraduationCap} accent="indigo" hint="Active mentor profiles" />
+            <StatCard label="Total projects" value={stats.data!.totalProjects} icon={FolderKanban} hint="All projects on the platform" />
+            <StatCard label="Total users" value={stats.data!.totalUsers} icon={GraduationCap} accent="indigo" hint={`${stats.data!.activeUsers} active accounts`} />
             <StatCard label="Notifications sent" value={notifications.data!.totalElements} icon={Megaphone} accent="success" hint="All-time on this account" />
             <StatCard label="Unread (admin account)" value={unread.data!.count} icon={BellRing} accent="warning" />
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             <DonutChartCard title="Projects by status" description="From the latest 100 projects" data={statusData} />
-            <BarChartCard title="Users by role (derived)" description="Distinct project owners plus faculty mentors" data={roleData} color="#7c3aed" />
+            <BarChartCard title="Users by role" description="All registered accounts by role" data={roleData} color="#7c3aed" />
             <TrendChartCard title="Notification activity (14 days)" description="From the latest 100 notifications" data={trendData} />
           </div>
         </>

@@ -193,7 +193,7 @@ export default function Detail() {
                   <Avatar name={member.fullName} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{member.fullName}</p>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{member.email}</p>
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">@{member.username}</p>
                   </div>
                   <Badge tone={roleTone(member.role)}>{titleCase(member.role)}</Badge>
                 </li>

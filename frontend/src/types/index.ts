@@ -39,6 +39,30 @@ export interface UserDto {
   createdAt: string;
 }
 
+export interface UserSummaryDto {
+  id: string;
+  fullName: string;
+  username: string;
+  role: Role;
+  department?: string | null;
+  avatar?: string | null;
+  createdAt: string;
+}
+
+export interface AdminUserDto extends UserSummaryDto {
+  email: string;
+  active: boolean;
+}
+
+export interface AdminStatsDto {
+  totalUsers: number;
+  studentUsers: number;
+  facultyUsers: number;
+  adminUsers: number;
+  activeUsers: number;
+  totalProjects: number;
+}
+
 export interface StudentProfileDto {
   id: string;
   enrollmentNumber?: string | null;
@@ -83,14 +107,14 @@ export interface ProjectSummaryDto {
   shortDescription?: string | null;
   description?: string | null;
   status: ProjectStatus;
-  owner?: UserDto;
+  owner?: UserSummaryDto;
   domain?: string | null;
   domains?: ResearchDomainDto[];
   skills?: SkillDto[];
   mentorName?: string | null;
-  teamSize: number;
   maxTeamSize?: number;
   memberCount?: number;
+  teamCount?: number;
   createdAt: string;
 }
 
@@ -105,6 +129,7 @@ export interface ProjectCreateRequest {
   shortDescription?: string | null;
   status?: ProjectStatus | null;
   repositoryUrl?: string | null;
+  maxTeamSize?: number | null;
   researchDomainIds: string[];
   skillIds: string[];
 }
@@ -140,7 +165,7 @@ export interface TeamDto {
   projectId: string;
   name: string;
   description?: string | null;
-  members: UserDto[];
+  members: UserSummaryDto[];
   createdAt: string;
 }
 

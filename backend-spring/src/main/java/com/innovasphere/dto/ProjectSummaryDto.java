@@ -10,9 +10,11 @@ public record ProjectSummaryDto(
     String shortDescription,
     ProjectStatus status,
     String domain,
+    UserSummaryDto owner,
     String mentorName,
-    int teamSize,
+    int memberCount,
     int maxTeamSize,
+    int teamCount,
     Instant createdAt
 ) {
 }

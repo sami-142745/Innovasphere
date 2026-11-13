@@ -100,9 +100,9 @@ const PROJECTS = [
     domains: [{ id: 'd1', name: 'Artificial Intelligence' }],
     skills: [{ id: 's1', name: 'Mathematics' }, { id: 's2', name: 'Python' }],
     mentorName: 'Ada Lovelace',
-    teamSize: 4,
     maxTeamSize: 4,
     memberCount: 2,
+    teamCount: 1,
     createdAt: '2026-02-01T10:30:00Z'
   },
   {
@@ -116,9 +116,9 @@ const PROJECTS = [
     domains: [{ id: 'd2', name: 'Quantum Computing' }],
     skills: [{ id: 's3', name: 'Physics' }],
     mentorName: 'Grace Hopper',
-    teamSize: 3,
     maxTeamSize: 3,
     memberCount: 1,
+    teamCount: 1,
     createdAt: '2026-02-02T11:00:00Z'
   }
 ];
@@ -464,6 +464,34 @@ export function applyRouteMocks(page: Page) {
   // Admin
   page.route(is('/api/admin/notifications'), async (route) => {
     await route.fulfill({ status: 204 });
+  });
+  page.route(is('/api/admin/stats'), async (route) => {
+    await json(route, {
+      totalUsers: 3,
+      studentUsers: 1,
+      facultyUsers: 1,
+      adminUsers: 1,
+      activeUsers: 3,
+      totalProjects: PROJECTS.length
+    });
+  });
+  page.route(startsWith('/api/admin/users'), async (route, request) => {
+    if (request.method() === 'PATCH') {
+      const body = request.postDataJSON() as { active?: boolean };
+      await json(route, { ...ADMIN_USER, active: body.active ?? true, department: 'Administration' });
+      return;
+    }
+    const users = [ADMIN_USER, FACULTY_USER, STUDENT_USER].map((u) => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      fullName: u.fullName,
+      role: u.role,
+      active: u.active,
+      department: u.facultyProfile?.department ?? u.studentProfile?.department ?? null,
+      createdAt: u.createdAt
+    }));
+    await json(route, pageResponse(users, 0, 10));
   });
 }
 

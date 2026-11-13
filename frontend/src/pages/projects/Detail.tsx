@@ -104,7 +104,7 @@ export default function Detail() {
                 </span>
                 <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
                   <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                  {formatTeamSize(project.memberCount ?? 0, project.teamSize)} members
+                  {formatTeamSize(project.memberCount ?? 0, project.maxTeamSize)} members
                 </span>
               </div>
             </div>
@@ -185,12 +185,16 @@ export default function Detail() {
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-slate-500 dark:text-slate-400">Team size</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">{project.teamSize}</span>
+                <span className="text-slate-500 dark:text-slate-400">Team capacity</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{project.maxTeamSize ?? 10}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-500 dark:text-slate-400">Members</span>
                 <span className="font-medium text-slate-900 dark:text-slate-100">{project.memberCount ?? 0}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-500 dark:text-slate-400">Teams</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">{project.teamCount ?? 0}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-slate-500 dark:text-slate-400">Owner</span>

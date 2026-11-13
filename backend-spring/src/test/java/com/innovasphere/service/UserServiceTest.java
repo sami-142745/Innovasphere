@@ -49,7 +49,7 @@ class UserServiceTest {
 
         assertEquals(1, page.getTotalElements());
         UserSummaryDto dto = page.getContent().get(0);
-        assertEquals("Alice Test", dto.name());
+        assertEquals("Alice Test", dto.fullName());
         assertEquals("CSE", dto.department());
         assertNull(dto.avatar());
         ArgumentCaptor<String> keywordCapture = ArgumentCaptor.forClass(String.class);

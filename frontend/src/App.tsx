@@ -72,14 +72,14 @@ export default function App() {
           >
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectDirectory />} />
-            <Route path="/projects/my" element={<RoleRoute roles={['STUDENT']}><MyProjectsPage /></RoleRoute>} />
+            <Route path="/projects/my" element={<RoleRoute roles={['STUDENT', 'FACULTY', 'ADMIN']}><MyProjectsPage /></RoleRoute>} />
             <Route path="/projects/create" element={<RoleRoute roles={['STUDENT', 'FACULTY']}><ProjectCreatePage /></RoleRoute>} />
             <Route path="/projects/edit/:id" element={<RoleRoute roles={['STUDENT', 'FACULTY']}><ProjectEditPage /></RoleRoute>} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
             <Route path="/mentors/:id" element={<MentorDetailPage />} />
-            <Route path="/teams" element={<RoleRoute roles={['STUDENT']}><MyTeamsPage /></RoleRoute>} />
-            <Route path="/teams/:id" element={<RoleRoute roles={['STUDENT']}><TeamDetailPage /></RoleRoute>} />
-            <Route path="/mentorships" element={<RoleRoute roles={['FACULTY', 'ADMIN']}><MentorshipRequestsPage /></RoleRoute>} />
+            <Route path="/teams" element={<RoleRoute roles={['STUDENT', 'FACULTY', 'ADMIN']}><MyTeamsPage /></RoleRoute>} />
+            <Route path="/teams/:id" element={<RoleRoute roles={['STUDENT', 'FACULTY', 'ADMIN']}><TeamDetailPage /></RoleRoute>} />
+            <Route path="/mentorships" element={<RoleRoute roles={['STUDENT', 'FACULTY', 'ADMIN']}><MentorshipRequestsPage /></RoleRoute>} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/profile" element={<ProfileRedirect />} />
