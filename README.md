@@ -96,7 +96,7 @@ project_nexus/
 │   │   ├── security/       # JwtService, filters, login
 │   │   └── service/        # Business logic
 │   ├── src/main/resources/ # application.yml, application-dev.yml, application-prod.yml
-│   ├── src/test/           # 219 integration + unit tests
+│   ├── src/test/           # 224 integration + unit tests
 │   ├── Dockerfile
 │   ├── render.yaml         # legacy; retained until cutover
 │   └── .env.example
@@ -185,13 +185,23 @@ Templates contain **no secrets**.
 ## 🧪 Testing
 
 ```bash
-# Backend — 219 tests (embedded H2 in MySQL mode; no external DB needed)
+# Backend — 224 tests (embedded H2 in MySQL mode; no external DB needed)
 cd backend-spring
 ./mvnw test
 
-# Frontend — 33 tests
+# Frontend unit/component — 41 tests
 cd frontend
 npm test
+```
+
+```bash
+# Route-mocked browser QA — 102 checks across desktop/tablet/mobile
+cd frontend
+npm run test:browser
+
+# Real-API browser suite — disposable MySQL + Spring Boot + React
+# Requires Docker; never touches the development database.
+npm run test:integration
 ```
 
 ```bash

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/e2e-real.ps1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
