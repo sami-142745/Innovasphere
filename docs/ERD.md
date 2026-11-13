@@ -38,7 +38,7 @@ erDiagram
 
 | Entity | Table | Purpose | Key fields |
 | ------ | ----- | ------- | ---------- |
-| User | `users` | Account, identity, role | `id`, `username`, `email`, `passwordHash`, `fullName`, `role`, `is_active` |
+| User | `users` | Account, identity, role | `id`, `username`, `email`, `passwordHash`, `fullName`, `role`, `token_version`, `is_active` |
 | StudentProfile | `student_profiles` | Student metadata | `id`, `user_id`, `degree`, `department`, `year`, `bio` |
 | FacultyProfile | `faculty_profiles` | Faculty metadata | `id`, `user_id`, `designation`, `department`, `expertise`, `bio` |
 | Project | `projects` | Research collaboration | `id`, `owner_id`, `title`, `shortDescription`, `description`, `status`, `repositoryUrl`, `maxTeamSize` |
@@ -65,6 +65,7 @@ erDiagram
   request materialises a `mentorships` row (1:1).
 - `projects.status` ∈ { `IDEA`, `PROPOSAL`, `ACTIVE`, `COMPLETED`, `ARCHIVED` }.
 - `projects.max_team_size` is nullable for legacy rows and defaults to `10`; valid range `1–100`.
+- `users.token_version` defaults to `0`; incrementing it (for example on logout) invalidates all previously issued JWTs for that user.
 
 ## Indexes & constraints
 

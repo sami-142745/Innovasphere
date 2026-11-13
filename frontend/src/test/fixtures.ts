@@ -100,10 +100,10 @@ export function makeRecommendedProject(overrides: Partial<ProjectRecommendationD
     owner: {
       id: 'u-2',
       username: 'grace.hopper',
-      email: 'grace@university.edu',
       fullName: 'Grace Hopper',
       role: 'STUDENT',
-      active: true,
+      department: null,
+      avatar: null,
       createdAt: '2026-01-10T09:00:00Z'
     },
     status: 'LOOKING_FOR_TEAM',

@@ -108,6 +108,13 @@ Response `200` — `UserProfileDto` (same `user` object as login).
 
 Status codes: `200` ok · `401` unauthenticated · `404` user record missing.
 
+### `POST /api/auth/logout`
+Authentication: **Bearer**
+
+Invalidates the current access token by incrementing the user's `token_version`. Existing tokens for that user stop validating immediately.
+
+Status codes: `204` logged out · `401` unauthenticated · `404` user record missing.
+
 ---
 
 ## Users & Profiles

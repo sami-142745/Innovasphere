@@ -35,6 +35,9 @@ app:
     expiration-ms: 3600000
   seed:
     enabled: false
+  security:
+    rate-limit:
+      enabled: false
 
 springdoc:
   api-docs:

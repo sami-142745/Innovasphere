@@ -174,4 +174,20 @@ class AuthControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").value("VALIDATION_FAILED"));
     }
+
+    void logoutReturnsNoContent() throws Exception {
+        String email = unique("logout") + "@test.com";
+        MvcResult registerResult = mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody(unique("lo"), email, "StrongPass@123", "STUDENT")))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        JsonNode body = objectMapper.readTree(registerResult.getResponse().getContentAsString());
+        String token = body.get("token").asText();
+
+        mockMvc.perform(post("/api/auth/logout")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isNoContent());
+    }
 }

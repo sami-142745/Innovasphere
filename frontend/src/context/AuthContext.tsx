@@ -48,16 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfileDto | null>(() => readStoredAuth()?.user ?? null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  const logout = useCallback(() => {
+  const clearSession = useCallback(() => {
     clearAuth();
     setAuth(null);
     setUser(null);
   }, []);
 
+  const logout = useCallback(() => {
+    void authService.logout().catch(() => {});
+    clearSession();
+  }, [clearSession]);
+
   useEffect(() => {
-    setUnauthorizedHandler(logout);
+    setUnauthorizedHandler(clearSession);
     return () => setUnauthorizedHandler(null);
-  }, [logout]);
+  }, [clearSession]);
 
   useEffect(() => {
     let cancelled = false;

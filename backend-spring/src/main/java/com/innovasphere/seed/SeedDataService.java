@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,8 +60,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class SeedDataService {
 
   public static final String ADMIN_EMAIL = "admin@innovasphere.edu";
-  private static final String DEFAULT_PASSWORD = "Innovas@2026";
   private static final String UNIVERSITY = "Innovasphere University";
+
+  @Value("${app.seed.password:}")
+  private String seedPassword;
 
   private final UserRepository userRepository;
   private final SkillRepository skillRepository;
@@ -122,6 +125,10 @@ public class SeedDataService {
       log.info("Seeding skipped: app.seed.enabled is false");
       return;
     }
+    if (seedPassword == null || seedPassword.isBlank()) {
+      log.warn("Seeding skipped: app.seed.password is not configured (set SEED_PASSWORD).");
+      return;
+    }
     if (userRepository.existsByEmail(ADMIN_EMAIL)) {
       log.info("Seeding skipped: admin account already exists (seed is idempotent)");
       return;
@@ -157,7 +164,7 @@ public class SeedDataService {
             User.builder()
                 .username("admin")
                 .email(ADMIN_EMAIL)
-                .passwordHash(passwordEncoder.encode("Admin@2026"))
+                .passwordHash(passwordEncoder.encode(seedPassword))
                 .fullName("System Administrator")
                 .role(Role.ADMIN)
                 .active(true)
@@ -246,7 +253,7 @@ public class SeedDataService {
                 seed.lastName(),
                 seed.username(),
                 seed.email(),
-                DEFAULT_PASSWORD,
+                seedPassword,
                 Role.FACULTY));
         user = userRepository.findByEmail(seed.email()).orElseThrow();
       }
@@ -341,7 +348,7 @@ public class SeedDataService {
                 seed.lastName(),
                 seed.username(),
                 seed.email(),
-                DEFAULT_PASSWORD,
+                seedPassword,
                 Role.STUDENT));
         user = userRepository.findByEmail(seed.email()).orElseThrow();
       }

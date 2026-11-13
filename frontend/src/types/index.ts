@@ -29,16 +29,6 @@ export interface ResearchDomainDto {
   description?: string | null;
 }
 
-export interface UserDto {
-  id: string;
-  username: string;
-  email: string;
-  fullName: string;
-  role: Role;
-  active: boolean;
-  createdAt: string;
-}
-
 export interface UserSummaryDto {
   id: string;
   fullName: string;
@@ -209,7 +199,7 @@ export interface NotificationDto {
 export interface ProjectRecommendationDto {
   projectId: string;
   title: string;
-  owner: UserDto;
+  owner: UserSummaryDto;
   status: ProjectStatus;
   matchScore: number;
   matchedSkills: string[];

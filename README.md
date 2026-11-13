@@ -185,7 +185,7 @@ Templates contain **no secrets**.
 ## 🧪 Testing
 
 ```bash
-# Backend — 224 tests (embedded H2 in MySQL mode; no external DB needed)
+# Backend — 233 tests (embedded H2 in MySQL mode; no external DB needed)
 cd backend-spring
 ./mvnw test
 

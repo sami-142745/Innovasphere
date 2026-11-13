@@ -97,6 +97,8 @@ export const handlers = [
     HttpResponse.json(makePage([makeRecommendedProject()], 1, 0, 9))
   ),
 
+  http.post('*/api/auth/logout', () => new HttpResponse(null, { status: 204 })),
+
   http.get('*/api/recommendations/mentors', () =>
     HttpResponse.json(
       makePage(

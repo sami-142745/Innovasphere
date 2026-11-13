@@ -120,8 +120,16 @@ public class AuthService {
     }
 
     private AuthResponse toAuthResponse(User user) {
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getEmail(), user.getTokenVersion());
         return new AuthResponse(token, toUserProfile(user), jwtService.getExpirationMs());
+    }
+
+    @Transactional
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", "User not found"));
+        user.setTokenVersion(user.getTokenVersion() + 1);
+        userRepository.save(user);
     }
 
     private UserProfileDto toUserProfile(User user) {

@@ -11,7 +11,7 @@ import com.innovasphere.entity.User;
 import com.innovasphere.enums.ProjectStatus;
 import com.innovasphere.enums.Role;
 import com.innovasphere.exception.ApiException;
-import com.innovasphere.mapper.UserMapper;
+import com.innovasphere.mapper.ProjectMapper;
 import com.innovasphere.repository.FacultyProfileRepository;
 import com.innovasphere.repository.ProjectRepository;
 import com.innovasphere.repository.StudentProfileRepository;
@@ -41,7 +41,7 @@ class RecommendationServiceTest {
     @Mock StudentProfileRepository studentProfileRepository;
     @Mock ProjectRepository projectRepository;
     @Mock FacultyProfileRepository facultyProfileRepository;
-    @Mock UserMapper userMapper;
+    @Mock ProjectMapper projectMapper;
     @InjectMocks RecommendationServiceImpl recommendationService;
 
     private User student(UUID id) {

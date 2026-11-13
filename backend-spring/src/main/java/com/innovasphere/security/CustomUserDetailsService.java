@@ -2,8 +2,6 @@ package com.innovasphere.security;
 
 import com.innovasphere.entity.User;
 import com.innovasphere.repository.UserRepository;
-import java.util.List;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,14 +21,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        return new org.springframework.security.core.userdetails.User(
+        return new AuthenticatedUser(
+            user.getId(),
             user.getEmail(),
             user.getPasswordHash(),
-            true,
-            true,
-            true,
+            user.getRole(),
             user.isActive(),
-            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+            user.getTokenVersion()
         );
     }
 }

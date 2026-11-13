@@ -74,6 +74,12 @@ app:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost,http://127.0.0.1}
   seed:
     enabled: ${SEED_ENABLED:false}
+    password: ${SEED_PASSWORD:}
+  security:
+    rate-limit:
+      enabled: ${AUTH_RATE_LIMIT_ENABLED:true}
+      login-per-minute: ${AUTH_LOGIN_RATE_LIMIT:20}
+      register-per-minute: ${AUTH_REGISTER_RATE_LIMIT:10}
 
 springdoc:
   swagger-ui:

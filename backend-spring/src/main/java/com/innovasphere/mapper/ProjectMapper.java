@@ -86,7 +86,7 @@ public class ProjectMapper {
                 project.getUpdatedAt());
     }
 
-    private UserSummaryDto toOwner(User owner) {
+    public UserSummaryDto toOwner(User owner) {
         if (owner == null) {
             return null;
         }

@@ -51,12 +51,22 @@ public class JwtService {
     }
 
     public String generateToken(String username) {
+        return generateToken(username, 0);
+    }
+
+    public String generateToken(String username, int tokenVersion) {
         return Jwts.builder()
             .subject(username)
+            .claim("ver", tokenVersion)
             .issuedAt(new Date(System.currentTimeMillis()))
             .expiration(new Date(System.currentTimeMillis() + expirationMs))
             .signWith(signingKey)
             .compact();
+    }
+
+    public int extractTokenVersion(String token) {
+        Integer version = extractClaim(token, claims -> claims.get("ver", Integer.class));
+        return version == null ? 0 : version;
     }
 
     public String extractUsername(String token) {
@@ -74,7 +84,13 @@ public class JwtService {
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
-            return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            if (!username.equals(userDetails.getUsername()) || isTokenExpired(token)) {
+                return false;
+            }
+            if (userDetails instanceof AuthenticatedUser authenticatedUser) {
+                return extractTokenVersion(token) == authenticatedUser.getTokenVersion();
+            }
+            return true;
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }

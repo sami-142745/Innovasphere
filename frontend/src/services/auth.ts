@@ -1,4 +1,5 @@
 import { api } from '../api/client';
+import { getToken } from '../utils/authStorage';
 import type { AuthResponse, UserProfileDto } from '../types';
 import { persistAuth } from '../utils/authStorage';
 
@@ -28,5 +29,15 @@ export const authService = {
 
   me(): Promise<UserProfileDto> {
     return api.get('/api/auth/me').then((r) => r.data);
+  },
+
+  logout(): Promise<void> {
+    const token = getToken();
+    if (!token) {
+      return Promise.resolve();
+    }
+    return api
+      .post('/api/auth/logout', null, { headers: { Authorization: `Bearer ${token}` } })
+      .then(() => undefined);
   }
 };

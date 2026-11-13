@@ -2,7 +2,6 @@ package com.innovasphere.service;
 
 import com.innovasphere.dto.MentorRecommendationDto;
 import com.innovasphere.dto.ProjectRecommendationDto;
-import com.innovasphere.dto.UserDto;
 import com.innovasphere.entity.FacultyProfile;
 import com.innovasphere.entity.Project;
 import com.innovasphere.entity.ProjectSkill;
@@ -12,7 +11,7 @@ import com.innovasphere.entity.User;
 import com.innovasphere.enums.ProjectStatus;
 import com.innovasphere.enums.Role;
 import com.innovasphere.exception.ApiException;
-import com.innovasphere.mapper.UserMapper;
+import com.innovasphere.mapper.ProjectMapper;
 import com.innovasphere.repository.FacultyProfileRepository;
 import com.innovasphere.repository.ProjectRepository;
 import com.innovasphere.repository.StudentProfileRepository;
@@ -37,18 +36,18 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final StudentProfileRepository studentProfileRepository;
     private final ProjectRepository projectRepository;
     private final FacultyProfileRepository facultyProfileRepository;
-    private final UserMapper userMapper;
+    private final ProjectMapper projectMapper;
 
     public RecommendationServiceImpl(
         StudentProfileRepository studentProfileRepository,
         ProjectRepository projectRepository,
         FacultyProfileRepository facultyProfileRepository,
-        UserMapper userMapper
+        ProjectMapper projectMapper
     ) {
         this.studentProfileRepository = studentProfileRepository;
         this.projectRepository = projectRepository;
         this.facultyProfileRepository = facultyProfileRepository;
-        this.userMapper = userMapper;
+        this.projectMapper = projectMapper;
     }
 
     @Override
@@ -161,7 +160,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         return new ProjectRecommendationDto(
             project.getId(),
             project.getTitle(),
-            userMapper.toDto(project.getOwner()),
+            projectMapper.toOwner(project.getOwner()),
             project.getStatus(),
             score,
             matchedSkills,

@@ -76,7 +76,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode("StrongPass@123")).thenReturn("encoded");
         User expected = savedUser(Role.STUDENT);
         when(userRepository.save(any(User.class))).thenReturn(expected);
-        when(jwtService.generateToken("user@test.com")).thenReturn("jwt-token");
+        when(jwtService.generateToken("user@test.com", 0)).thenReturn("jwt-token");
         when(jwtService.getExpirationMs()).thenReturn(3600000L);
 
         AuthResponse response = authService.register(request(Role.STUDENT));
@@ -98,7 +98,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode("StrongPass@123")).thenReturn("encoded");
         User expected = savedUser(Role.FACULTY);
         when(userRepository.save(any(User.class))).thenReturn(expected);
-        when(jwtService.generateToken("user@test.com")).thenReturn("t");
+        when(jwtService.generateToken("user@test.com", 0)).thenReturn("t");
         when(jwtService.getExpirationMs()).thenReturn(1L);
 
         authService.register(request(Role.FACULTY));
@@ -114,7 +114,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode("StrongPass@123")).thenReturn("encoded");
         User expected = savedUser(Role.STUDENT);
         when(userRepository.save(any(User.class))).thenReturn(expected);
-        when(jwtService.generateToken("user@test.com")).thenReturn("t");
+        when(jwtService.generateToken("user@test.com", 0)).thenReturn("t");
         when(jwtService.getExpirationMs()).thenReturn(1L);
 
         authService.register(request(null));
@@ -163,7 +163,7 @@ class AuthServiceTest {
     void loginSuccessAuthenticatesAndReturnsToken() {
         User user = savedUser(Role.STUDENT);
         when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
-        when(jwtService.generateToken("user@test.com")).thenReturn("login-token");
+        when(jwtService.generateToken("user@test.com", 0)).thenReturn("login-token");
         when(jwtService.getExpirationMs()).thenReturn(7200000L);
 
         AuthResponse response = authService.login(new LoginRequest("user@test.com", "StrongPass@123"));
@@ -219,13 +219,26 @@ class AuthServiceTest {
     }
 
     @Test
+    void logoutIncrementsTokenVersion() {
+        User user = savedUser(Role.STUDENT);
+        user.setTokenVersion(3);
+        when(userRepository.findByEmail("user@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.logout("user@test.com");
+
+        assertEquals(4, user.getTokenVersion());
+        verify(userRepository).save(user);
+    }
+
+    @Test
     void registerUsesEncodedPassword() {
         when(userRepository.existsByEmail("user@test.com")).thenReturn(false);
         when(userRepository.existsByUsername("username1")).thenReturn(false);
         when(passwordEncoder.encode(eq("StrongPass@123"))).thenReturn("bcrypt-hash");
         User expected = savedUser(Role.STUDENT);
         when(userRepository.save(any(User.class))).thenReturn(expected);
-        when(jwtService.generateToken("user@test.com")).thenReturn("t");
+        when(jwtService.generateToken("user@test.com", 0)).thenReturn("t");
         when(jwtService.getExpirationMs()).thenReturn(1L);
 
         authService.register(request(Role.STUDENT));

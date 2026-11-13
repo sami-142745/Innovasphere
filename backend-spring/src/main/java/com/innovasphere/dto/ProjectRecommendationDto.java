@@ -7,7 +7,7 @@ import java.util.UUID;
 public record ProjectRecommendationDto(
     UUID projectId,
     String title,
-    UserDto owner,
+    UserSummaryDto owner,
     ProjectStatus status,
     int matchScore,
     Set<String> matchedSkills,

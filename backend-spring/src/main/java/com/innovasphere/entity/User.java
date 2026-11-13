@@ -68,6 +68,10 @@ public class User extends BaseEntity {
     @Builder.Default
     private Role role = Role.STUDENT;
 
+    @Column(name = "token_version", nullable = false)
+    @Builder.Default
+    private int tokenVersion = 0;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private boolean active = true;

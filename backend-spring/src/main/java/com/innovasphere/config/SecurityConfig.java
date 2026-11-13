@@ -90,6 +90,7 @@ public class SecurityConfig {
                         // --- auth ----------------------------------------------------------
                         // Declared BEFORE /api/projects/** so the authenticated matcher wins.
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/projects/my").authenticated()
 
