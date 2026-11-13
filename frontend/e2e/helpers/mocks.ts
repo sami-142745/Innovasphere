@@ -442,6 +442,13 @@ export function applyRouteMocks(page: Page) {
   page.route(is('/api/notifications/count'), async (route) => {
     await json(route, { count: 2 });
   });
+  page.route(is('/api/notifications/preferences'), async (route) => {
+    if (route.request().method() === 'PUT') {
+      await json(route, { id: 'np-1', userId: 'u-1', emailAlerts: true, inAppAlerts: true });
+      return;
+    }
+    await json(route, { id: 'np-1', userId: 'u-1', emailAlerts: true, inAppAlerts: true });
+  });
   page.route(is('/api/notifications/read-all'), async (route) => {
     await route.fulfill({ status: 204 });
   });

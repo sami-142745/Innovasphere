@@ -151,6 +151,24 @@ export const handlers = [
 
   http.get('*/api/notifications/count', () => HttpResponse.json({ count: 2 })),
 
+  http.get('*/api/notifications/preferences', () =>
+    HttpResponse.json({
+      id: 'np-1',
+      userId: 'u-1',
+      emailAlerts: true,
+      inAppAlerts: true
+    })
+  ),
+
+  http.put('*/api/notifications/preferences', () =>
+    HttpResponse.json({
+      id: 'np-1',
+      userId: 'u-1',
+      emailAlerts: true,
+      inAppAlerts: true
+    })
+  ),
+
   http.get('*/api/notifications', () => HttpResponse.json(makePage(NOTIFICATIONS, NOTIFICATIONS.length, 0, 30))),
 
   http.put('*/api/notifications/read-all', () => HttpResponse.json(null, { status: 204 })),

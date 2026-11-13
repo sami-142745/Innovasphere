@@ -74,10 +74,20 @@ public class TeamController {
         return teamService.update(teamId, request, user);
     }
 
-    @DeleteMapping("/teams/{teamId}")
+    @DeleteMapping("/teams/{teamId}/invitations")
     public ResponseEntity<Void> delete(@PathVariable UUID teamId, Authentication authentication) {
         User user = currentUserProvider.require(authentication);
         teamService.delete(teamId, user);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/teams/{teamId}/members/{memberId}")
+    public ResponseEntity<Void> removeMember(
+        @PathVariable UUID teamId,
+        @PathVariable UUID memberId,
+        Authentication authentication) {
+        User user = currentUserProvider.require(authentication);
+        teamService.removeMember(teamId, memberId, user);
         return ResponseEntity.noContent().build();
     }
 

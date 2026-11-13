@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { Check, Users, X } from 'lucide-react';
+import { Check, Users, X, Pencil } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useAsync } from '../../hooks/useAsync';
+import { useState } from 'react';
 import { extractApiError } from '../../api/client';
 import { mentorService } from '../../services/mentors';
-import type { MentorshipRequestDto, RequestStatus } from '../../types';
+import { profileService } from '../../services/profile';
+import { researchDomainService } from '../../services/research-domains';
+import type { MentorshipRequestDto, RequestStatus, ResearchDomainDto } from '../../types';
 import {
   Avatar,
   Badge,
@@ -16,6 +18,10 @@ import {
   CardTitle,
   EmptyState,
   ErrorState,
+  Input,
+  Modal,
+  Select,
+  Textarea,
   Spinner
 } from '../../components/ui';
 import { formatDate, requestStatusLabel, timeAgo, titleCase } from '../../utils/format';
@@ -40,7 +46,10 @@ export default function Profile() {
   const { user } = useAuth();
   const { success, error } = useToast();
   const [actingId, setActingId] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { data, loading, error: loadError, reload } = useAsync(() => mentorService.receivedRequests(), [user?.id]);
+  const domains = useAsync(() => researchDomainService.list(), []);
 
   if (!user) return null;
 
@@ -59,14 +68,40 @@ export default function Profile() {
     }
   };
 
+  const handleFacultySave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    setSubmitting(true);
+    try {
+      await profileService.updateFacultyProfile({
+        department: (formData.get('department') as string) || undefined,
+        designation: (formData.get('designation') as string) || undefined,
+        bio: (formData.get('bio') as string) || undefined,
+        expertise: (formData.get('expertise') as string) || undefined,
+        researchDomainIds: domains.data?.map((d) => d.id) ?? []
+      });
+      success('Profile updated.');
+      setEditOpen(false);
+    } catch (err) {
+      error(extractApiError(err, 'Could not update profile.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <HeroBanner accent="faculty" eyebrow="Your profile" title="Profile" description="Your faculty profile and mentorship activity" />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex items-center justify-between">
             <CardTitle>Account</CardTitle>
+            <Button size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+              Edit
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
@@ -87,8 +122,12 @@ export default function Profile() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex items-center justify-between">
             <CardTitle>Academic profile</CardTitle>
+            <Button size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+              Edit
+            </Button>
           </CardHeader>
           <CardContent>
             {facultyProfile ? (
@@ -177,6 +216,47 @@ export default function Profile() {
           )}
         </CardContent>
       </Card>
+
+      {editOpen && (
+        <Modal
+          open={true}
+          onClose={() => setEditOpen(false)}
+          title="Edit faculty profile"
+          description="Update your department, designation, bio, expertise and research domains."
+        >
+          <form onSubmit={handleFacultySave} className="space-y-4" noValidate>
+            <Input label="Department" name="department" defaultValue={facultyProfile?.department ?? ''} />
+            <Input label="Designation" name="designation" defaultValue={facultyProfile?.designation ?? ''} />
+            <Input label="Expertise" name="expertise" defaultValue={facultyProfile?.expertise ?? ''} />
+            <Textarea label="Bio" name="bio" rows={3} defaultValue={facultyProfile?.bio ?? ''} />
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Research domains</p>
+              <div className="flex flex-wrap gap-2 border border-slate-200 dark:border-slate-700 rounded-md p-3" style={{ maxHeight: 150, overflowY: 'auto' }}>
+                {(domains.data ?? []).map((d) => (
+                  <label key={d.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                    <input
+                      type="checkbox"
+                      name="researchDomainIds"
+                      value={d.id}
+                      defaultChecked={facultyProfile?.researchDomains.some((rd) => rd.id === d.id) ?? false}
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800"
+                    />
+                    {d.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-1">
+              <Button type="button" variant="ghost" onClick={() => setEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" loading={submitting}>
+                Save changes
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

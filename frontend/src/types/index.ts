@@ -241,8 +241,44 @@ export interface CountResponse {
   count: number;
 }
 
+export interface UserUpdateRequest {
+  username: string;
+  fullName: string;
+  email: string;
+}
+
+export interface StudentProfileUpdateRequest {
+  enrollmentNumber?: string | null;
+  university?: string | null;
+  department?: string | null;
+  yearOfStudy?: number | null;
+  bio?: string | null;
+  skillIds?: string[];
+  researchDomainIds?: string[];
+}
+
+export interface FacultyProfileUpdateRequest {
+  department?: string | null;
+  designation?: string | null;
+  bio?: string | null;
+  expertise?: string | null;
+  researchDomainIds?: string[];
+}
+
 export interface ApiErrorResponse {
   status?: number;
   message?: string;
   error?: string;
+}
+
+export interface NotificationPreferenceDto {
+  id: string;
+  userId: string;
+  emailAlerts: boolean;
+  inAppAlerts: boolean;
+}
+
+export interface NotificationPreferenceUpdateRequest {
+  emailAlerts: boolean;
+  inAppAlerts: boolean;
 }

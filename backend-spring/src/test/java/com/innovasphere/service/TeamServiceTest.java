@@ -4,15 +4,21 @@ import com.innovasphere.dto.MyTeamDto;
 import com.innovasphere.dto.TeamCreateRequest;
 import com.innovasphere.dto.TeamDto;
 import com.innovasphere.dto.TeamUpdateRequest;
+import com.innovasphere.entity.Notification;
 import com.innovasphere.entity.Project;
 import com.innovasphere.entity.Team;
 import com.innovasphere.entity.User;
+import com.innovasphere.enums.InvitationStatus;
 import com.innovasphere.enums.MemberRole;
 import com.innovasphere.enums.Role;
 import com.innovasphere.exception.ApiException;
 import com.innovasphere.mapper.TeamMapper;
+import com.innovasphere.repository.NotificationRepository;
+import com.innovasphere.repository.ProjectMemberRepository;
 import com.innovasphere.repository.ProjectRepository;
+import com.innovasphere.repository.TeamInvitationRepository;
 import com.innovasphere.repository.TeamRepository;
+import com.innovasphere.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,6 +43,10 @@ class TeamServiceTest {
 
     @Mock TeamRepository teamRepository;
     @Mock ProjectRepository projectRepository;
+    @Mock TeamInvitationRepository teamInvitationRepository;
+    @Mock ProjectMemberRepository projectMemberRepository;
+    @Mock NotificationRepository notificationRepository;
+    @Mock UserRepository userRepository;
     @Mock TeamMapper teamMapper;
     @InjectMocks TeamService teamService;
 
@@ -200,5 +210,95 @@ class TeamServiceTest {
         User owner = user(UUID.randomUUID(), Role.STUDENT);
         ApiException ex = assertThrows(ApiException.class, () -> teamService.delete(missing, owner));
         assertEquals("TEAM_NOT_FOUND", ex.getCode());
+    }
+
+    @Test
+    void removeMemberRemovesFromTeam() {
+        UUID teamId = UUID.randomUUID();
+        UUID memberId = UUID.randomUUID();
+        User owner = user(UUID.randomUUID(), Role.STUDENT);
+        User member = user(memberId, Role.STUDENT);
+        Project project = project(UUID.randomUUID(), owner);
+        Team team = Team.builder().project(project).name("Team").build();
+        team.setId(teamId);
+        team.getMembers().add(member);
+
+        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+        when(teamRepository.save(any(Team.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        teamService.removeMember(teamId, memberId, owner);
+
+        verify(teamRepository).save(team);
+        verify(projectMemberRepository).deleteByProjectIdAndUserId(project.getId(), memberId);
+        verify(teamInvitationRepository).deletePendingByTeamAndUser(teamId, memberId);
+        verify(notificationRepository).save(any(Notification.class));
+        assertEquals(0, team.getMembers().size());
+    }
+
+    @Test
+    void removeMemberByNonOwnerForbidden() {
+        UUID teamId = UUID.randomUUID();
+        UUID memberId = UUID.randomUUID();
+        User owner = user(UUID.randomUUID(), Role.STUDENT);
+        User nonOwner = user(UUID.randomUUID(), Role.STUDENT);
+        User member = user(memberId, Role.STUDENT);
+        Project project = project(UUID.randomUUID(), owner);
+        Team team = Team.builder().project(project).name("Team").build();
+        team.setId(teamId);
+        team.getMembers().add(member);
+
+        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+
+        ApiException ex = assertThrows(ApiException.class,
+            () -> teamService.removeMember(teamId, memberId, nonOwner));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
+    }
+
+    @Test
+    void removeMemberNotInTeamNotFound() {
+        UUID teamId = UUID.randomUUID();
+        UUID missingMemberId = UUID.randomUUID();
+        User owner = user(UUID.randomUUID(), Role.STUDENT);
+        Project project = project(UUID.randomUUID(), owner);
+        Team team = Team.builder().project(project).name("Team").build();
+        team.setId(teamId);
+
+        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+
+        ApiException ex = assertThrows(ApiException.class,
+            () -> teamService.removeMember(teamId, missingMemberId, owner));
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void removeProjectOwnerForbidden() {
+        UUID teamId = UUID.randomUUID();
+        User owner = user(UUID.randomUUID(), Role.STUDENT);
+        Project project = project(UUID.randomUUID(), owner);
+        Team team = Team.builder().project(project).name("Team").build();
+        team.setId(teamId);
+        team.getMembers().add(owner);
+
+        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+
+        ApiException ex = assertThrows(ApiException.class,
+            () -> teamService.removeMember(teamId, owner.getId(), owner));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
+    }
+
+    @Test
+    void removeSelfForbidden() {
+        UUID teamId = UUID.randomUUID();
+        User owner = user(UUID.randomUUID(), Role.STUDENT);
+        Project project = project(UUID.randomUUID(), owner);
+        Team team = Team.builder().project(project).name("Team").build();
+        team.setId(teamId);
+        team.getMembers().add(owner);
+
+        when(teamRepository.findById(teamId)).thenReturn(Optional.of(team));
+
+        ApiException ex = assertThrows(ApiException.class,
+            () -> teamService.removeMember(teamId, owner.getId(), owner));
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
     }
 }

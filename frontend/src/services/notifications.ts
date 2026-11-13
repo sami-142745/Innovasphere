@@ -1,5 +1,5 @@
 import { api } from '../api/client';
-import type { CountResponse, NotificationDto, Page } from '../types';
+import type { CountResponse, NotificationDto, Page, NotificationPreferenceDto, NotificationPreferenceUpdateRequest } from '../types';
 
 export const notificationService = {
   list(page = 0, size = 15): Promise<Page<NotificationDto>> {
@@ -24,5 +24,13 @@ export const notificationService = {
 
   remove(id: string): Promise<void> {
     return api.delete(`/api/notifications/${id}`).then(() => undefined);
+  },
+
+  getPreferences(): Promise<NotificationPreferenceDto> {
+    return api.get('/api/notifications/preferences').then((r) => r.data);
+  },
+
+  updatePreferences(payload: NotificationPreferenceUpdateRequest): Promise<NotificationPreferenceDto> {
+    return api.put('/api/notifications/preferences', payload).then((r) => r.data);
   }
 };

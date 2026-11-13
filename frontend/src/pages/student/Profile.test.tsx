@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { render } from '@testing-library/react';
+import { renderWithProviders } from '../../test/render';
 import Profile from './Profile';
 import type { UserProfileDto } from '../../types';
 
@@ -19,7 +18,7 @@ describe('StudentProfile', () => {
       studentProfile: { id: 'sp-1', enrollmentNumber: 'ENR-001' },
       facultyProfile: null
     } as UserProfileDto;
-    render(
+    renderWithProviders(
       <AuthContext.Provider
         value={{
           user,
@@ -31,14 +30,9 @@ describe('StudentProfile', () => {
           logout: vi.fn()
         }}
       >
-        <MemoryRouter>
-          <Profile />
-        </MemoryRouter>
+        <Profile />
       </AuthContext.Provider>
     );
-    // studentProfile.skills/researchDomains are undefined at runtime despite the
-    // type declaring them required, so the page must degrade gracefully instead of
-    // throwing when accessing .length / .map.
     expect(await screen.findByText('Profile')).toBeInTheDocument();
   });
 
@@ -59,7 +53,7 @@ describe('StudentProfile', () => {
       },
       facultyProfile: null
     } as UserProfileDto;
-    render(
+    renderWithProviders(
       <AuthContext.Provider
         value={{
           user,
@@ -71,9 +65,7 @@ describe('StudentProfile', () => {
           logout: vi.fn()
         }}
       >
-        <MemoryRouter>
-          <Profile />
-        </MemoryRouter>
+        <Profile />
       </AuthContext.Provider>
     );
     expect(await screen.findByText('Mathematics')).toBeInTheDocument();
@@ -97,7 +89,7 @@ describe('StudentProfile', () => {
       },
       facultyProfile: null
     } as UserProfileDto;
-    render(
+    renderWithProviders(
       <AuthContext.Provider
         value={{
           user,
@@ -109,9 +101,7 @@ describe('StudentProfile', () => {
           logout: vi.fn()
         }}
       >
-        <MemoryRouter>
-          <Profile />
-        </MemoryRouter>
+        <Profile />
       </AuthContext.Provider>
     );
     expect(await screen.findByText(/No research interests added yet\./)).toBeInTheDocument();

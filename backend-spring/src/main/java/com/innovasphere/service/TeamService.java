@@ -5,14 +5,21 @@ import com.innovasphere.dto.TeamCreateRequest;
 import com.innovasphere.dto.TeamDto;
 import com.innovasphere.dto.TeamUpdateRequest;
 import com.innovasphere.entity.Project;
+import com.innovasphere.entity.Notification;
 import com.innovasphere.entity.Team;
 import com.innovasphere.entity.User;
+import com.innovasphere.enums.InvitationStatus;
 import com.innovasphere.enums.MemberRole;
+import com.innovasphere.enums.NotificationType;
 import com.innovasphere.enums.Role;
 import com.innovasphere.exception.ApiException;
 import com.innovasphere.mapper.TeamMapper;
+import com.innovasphere.repository.NotificationRepository;
+import com.innovasphere.repository.ProjectMemberRepository;
 import com.innovasphere.repository.ProjectRepository;
+import com.innovasphere.repository.TeamInvitationRepository;
 import com.innovasphere.repository.TeamRepository;
+import com.innovasphere.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -26,11 +33,27 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final ProjectRepository projectRepository;
+    private final TeamInvitationRepository teamInvitationRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
     private final TeamMapper teamMapper;
 
-    public TeamService(TeamRepository teamRepository, ProjectRepository projectRepository, TeamMapper teamMapper) {
+    public TeamService(
+        TeamRepository teamRepository,
+        ProjectRepository projectRepository,
+        TeamInvitationRepository teamInvitationRepository,
+        ProjectMemberRepository projectMemberRepository,
+        NotificationRepository notificationRepository,
+        UserRepository userRepository,
+        TeamMapper teamMapper
+    ) {
         this.teamRepository = teamRepository;
         this.projectRepository = projectRepository;
+        this.teamInvitationRepository = teamInvitationRepository;
+        this.projectMemberRepository = projectMemberRepository;
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
         this.teamMapper = teamMapper;
     }
 
@@ -94,6 +117,44 @@ public class TeamService {
         Team team = requireTeam(teamId);
         requireOwnerOrAdmin(user, team.getProject());
         teamRepository.delete(team);
+    }
+
+    @Transactional
+    public void removeMember(UUID teamId, UUID memberId, User actor) {
+        Team team = requireTeam(teamId);
+        requireOwnerOrAdmin(actor, team.getProject());
+
+        if (!team.getMembers().stream().anyMatch(m -> m.getId().equals(memberId))) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "User is not a member of this team");
+        }
+
+        User member = team.getMembers().stream()
+            .filter(m -> m.getId().equals(memberId))
+            .findFirst()
+            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "User is not a member of this team"));
+
+        if (member.getId().equals(team.getProject().getOwner().getId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "CANNOT_REMOVE_PROJECT_OWNER",
+                "The project owner cannot be removed from the team");
+        }
+
+        if (member.getId().equals(actor.getId())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "CANNOT_REMOVE_SELF", "You cannot remove yourself from the team");
+        }
+
+        team.getMembers().remove(member);
+        teamRepository.save(team);
+
+        projectMemberRepository.deleteByProjectIdAndUserId(team.getProject().getId(), memberId);
+        teamInvitationRepository.deletePendingByTeamAndUser(teamId, memberId);
+
+        notificationRepository.save(Notification.builder()
+            .user(userRepository.getReferenceById(memberId))
+            .type(NotificationType.TEAM_INVITATION_REJECTED)
+            .title("Removed from team")
+            .message("You have been removed from the team \"" + team.getName() + "\" by " + actor.getFullName() + ".")
+            .read(false)
+            .build());
     }
 
     private Team requireTeam(UUID teamId) {

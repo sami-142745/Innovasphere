@@ -9,7 +9,8 @@ import {
   UserRound,
   Users,
   type LucideIcon,
-  FlaskConical
+  FlaskConical,
+  SlidersHorizontal
 } from 'lucide-react';
 import type { Role } from '../../types';
 import { cn } from '../../utils/cn';
@@ -45,6 +46,8 @@ const ADMIN_NAV: NavItem[] = [
   { label: 'Users', to: '/admin/users', icon: UserRound },
   { label: 'Projects', to: '/admin/projects', icon: BookOpen },
   { label: 'Faculty', to: '/admin/faculty', icon: Briefcase },
+  { label: 'Skills', to: '/admin/skills', icon: SlidersHorizontal },
+  { label: 'Research domains', to: '/admin/research-domains', icon: FlaskConical },
   { label: 'Notifications', to: '/notifications', icon: Bell }
 ];
 

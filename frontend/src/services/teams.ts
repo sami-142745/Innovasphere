@@ -37,6 +37,10 @@ export const teamService = {
     return api.delete(`/api/teams/${teamId}`).then(() => undefined);
   },
 
+  removeMember(teamId: string, memberId: string): Promise<void> {
+    return api.delete(`/api/teams/${teamId}/members/${memberId}`).then(() => undefined);
+  },
+
   invite(teamId: string, payload: TeamInvitePayload): Promise<TeamInvitationDto> {
     return api.post(`/api/teams/${teamId}/invitations`, payload).then((r) => r.data);
   },

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -6,29 +6,9 @@ import { useToast } from '../../context/ToastContext';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '../../components/ui';
 import { HeroBanner } from '../../components/shared/HeroBanner';
 import { cn } from '../../utils/cn';
-
-const PREFS_KEY = 'innovasphere.prefs';
-
-interface NotificationPrefs {
-  emailAlerts: boolean;
-  inAppAlerts: boolean;
-}
-
-const DEFAULT_PREFS: NotificationPrefs = { emailAlerts: true, inAppAlerts: true };
-
-function readPrefs(): NotificationPrefs {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    if (!raw) return DEFAULT_PREFS;
-    const parsed = JSON.parse(raw) as Partial<NotificationPrefs>;
-    return {
-      emailAlerts: typeof parsed.emailAlerts === 'boolean' ? parsed.emailAlerts : DEFAULT_PREFS.emailAlerts,
-      inAppAlerts: typeof parsed.inAppAlerts === 'boolean' ? parsed.inAppAlerts : DEFAULT_PREFS.inAppAlerts
-    };
-  } catch {
-    return DEFAULT_PREFS;
-  }
-}
+import { notificationService } from '../../services/notifications';
+import type { NotificationPreferenceDto } from '../../types';
+import { extractApiError } from '../../api/client';
 
 function ToggleRow({
   label,
@@ -72,21 +52,48 @@ function ToggleRow({
 export default function Settings() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { success } = useToast();
-  const [prefs, setPrefs] = useState<NotificationPrefs>(readPrefs);
+  const { success, error } = useToast();
+  const [prefs, setPrefs] = useState<NotificationPreferenceDto | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadPrefs();
+  }, []);
 
   if (!user) return null;
 
   const isDark = theme === 'dark';
 
-  const updatePref = (key: keyof NotificationPrefs, value: boolean) => {
-    setPrefs((prev) => ({ ...prev, [key]: value }));
+  const loadPrefs = async () => {
+    try {
+      const data = await notificationService.getPreferences();
+      setPrefs(data);
+    } catch (err) {
+      error(extractApiError(err, 'Could not load preferences.'));
+    }
   };
 
-  const savePrefs = () => {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
-    success('Preferences saved');
+  const savePrefs = async () => {
+    if (!prefs) return;
+    setLoading(true);
+    try {
+      await notificationService.updatePreferences({
+        emailAlerts: prefs.emailAlerts,
+        inAppAlerts: prefs.inAppAlerts
+      });
+      success('Preferences saved.');
+    } catch (err) {
+      error(extractApiError(err, 'Could not save preferences.'));
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const updatePref = (key: 'emailAlerts' | 'inAppAlerts', value: boolean) => {
+    setPrefs((prev) => (prev ? { ...prev, [key]: value } : null));
+  };
+
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
@@ -125,20 +132,28 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-    <div className="mx-auto max-w-7xl space-y-6">
-              <ToggleRow
-                label="Email alerts"
-                description="Receive email when your projects or mentorship requests are updated."
-                checked={prefs.emailAlerts}
-                onChange={(value) => updatePref('emailAlerts', value)}
-              />
-              <ToggleRow
-                label="In-app alerts"
-                description="Show notification banners inside the workspace."
-                checked={prefs.inAppAlerts}
-                onChange={(value) => updatePref('inAppAlerts', value)}
-              />
-              <Button onClick={savePrefs}>Save preferences</Button>
+            <div className="mx-auto max-w-7xl space-y-6">
+              {prefs ? (
+                <>
+                  <ToggleRow
+                    label="Email alerts"
+                    description="Receive email when your projects or mentorship requests are updated."
+                    checked={prefs.emailAlerts}
+                    onChange={(value) => updatePref('emailAlerts', value)}
+                  />
+                  <ToggleRow
+                    label="In-app alerts"
+                    description="Show notification banners inside the workspace."
+                    checked={prefs.inAppAlerts}
+                    onChange={(value) => updatePref('inAppAlerts', value)}
+                  />
+                  <Button onClick={savePrefs} loading={loading} disabled={!prefs}>
+                    Save preferences
+                  </Button>
+                </>
+              ) : (
+                <div className="text-slate-500 dark:text-slate-400 text-sm">Loading preferences…</div>
+              )}
             </div>
           </CardContent>
         </Card>

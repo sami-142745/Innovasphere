@@ -1,5 +1,6 @@
 package com.innovasphere.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -218,5 +219,63 @@ class TeamControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
             .andExpect(jsonPath("$[?(@.id=='" + invitationId + "')]").exists());
+    }
+
+    @Test
+    void ownerCanRemoveMember() throws Exception {
+        AuthUser owner = register(unique("owner"), unique("teo") + "@test.com", "FACULTY");
+        String projectId = createProject(owner.token(), unique("Remove Project"));
+        String teamId = createTeam(owner.token(), projectId, unique("Remove Team"));
+        AuthUser member = register(unique("member"), unique("tem") + "@test.com", "STUDENT");
+
+        // Invite and accept to add member to team
+        String invitationId = invite(owner.token(), teamId, member.id());
+        mockMvc.perform(post("/api/invitations/" + invitationId + "/accept")
+                .header("Authorization", "Bearer " + member.token()))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/teams/" + teamId + "/members/" + member.id())
+                .header("Authorization", "Bearer " + owner.token()))
+            .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void nonOwnerCannotRemoveMember() throws Exception {
+        AuthUser owner = register(unique("owner"), unique("teo") + "@test.com", "FACULTY");
+        AuthUser nonOwner = register(unique("non"), unique("ten") + "@test.com", "STUDENT");
+        String projectId = createProject(owner.token(), unique("Secure Remove Project"));
+        String teamId = createTeam(owner.token(), projectId, unique("Secure Remove Team"));
+        AuthUser member = register(unique("member"), unique("tme") + "@test.com", "STUDENT");
+
+        String invitationId = invite(owner.token(), teamId, member.id());
+        mockMvc.perform(post("/api/invitations/" + invitationId + "/accept")
+                .header("Authorization", "Bearer " + member.token()))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/teams/" + teamId + "/members/" + member.id())
+                .header("Authorization", "Bearer " + nonOwner.token()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void cannotRemoveSelf() throws Exception {
+        AuthUser owner = register(unique("owner"), unique("teo") + "@test.com", "FACULTY");
+        String projectId = createProject(owner.token(), unique("Self Remove Project"));
+        String teamId = createTeam(owner.token(), projectId, unique("Self Remove Team"));
+
+        mockMvc.perform(delete("/api/teams/" + teamId + "/members/" + owner.id())
+                .header("Authorization", "Bearer " + owner.token()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void removeMissingMemberReturnsNotFound() throws Exception {
+        AuthUser owner = register(unique("owner"), unique("teo") + "@test.com", "FACULTY");
+        String projectId = createProject(owner.token(), unique("Missing Project"));
+        String teamId = createTeam(owner.token(), projectId, unique("Missing Team"));
+
+        mockMvc.perform(delete("/api/teams/" + teamId + "/members/" + UUID.randomUUID())
+                .header("Authorization", "Bearer " + owner.token()))
+            .andExpect(status().isNotFound());
     }
 }

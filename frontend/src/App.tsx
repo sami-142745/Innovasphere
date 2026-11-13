@@ -37,6 +37,8 @@ const AdminDashboardPage = lazy(() => import('./pages/admin/Dashboard'));
 const AdminUsersPage = lazy(() => import('./pages/admin/Users'));
 const AdminProjectsPage = lazy(() => import('./pages/admin/Projects'));
 const AdminFacultyPage = lazy(() => import('./pages/admin/Faculty'));
+const AdminSkillsPage = lazy(() => import('./pages/admin/Skills'));
+const AdminResearchDomainsPage = lazy(() => import('./pages/admin/ResearchDomains'));
 
 const NotFoundPage = lazy(() => import('./pages/error/NotFound'));
 
@@ -90,6 +92,8 @@ export default function App() {
             <Route path="/admin/users" element={<RoleRoute roles={['ADMIN']}><AdminUsersPage /></RoleRoute>} />
             <Route path="/admin/projects" element={<RoleRoute roles={['ADMIN']}><AdminProjectsPage /></RoleRoute>} />
             <Route path="/admin/faculty" element={<RoleRoute roles={['ADMIN']}><AdminFacultyPage /></RoleRoute>} />
+            <Route path="/admin/skills" element={<RoleRoute roles={['ADMIN']}><AdminSkillsPage /></RoleRoute>} />
+            <Route path="/admin/research-domains" element={<RoleRoute roles={['ADMIN']}><AdminResearchDomainsPage /></RoleRoute>} />
           </Route>
 
           <Route path="/404" element={<NotFoundPage />} />

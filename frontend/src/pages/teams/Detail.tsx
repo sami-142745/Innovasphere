@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, UserMinus } from 'lucide-react';
 import { extractApiError } from '../../api/client';
 import { InviteMemberForm } from '../../components/forms/InviteMemberForm';
 import {
@@ -35,7 +35,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { useAsync } from '../../hooks/useAsync';
 import { teamService } from '../../services/teams';
-import type { RequestStatus, Role, TeamDto, TeamInvitationDto } from '../../types';
+import type { RequestStatus, Role, TeamDto, TeamInvitationDto, UserSummaryDto } from '../../types';
 import { requestStatusLabel, requestStatusTone, timeAgo, titleCase } from '../../utils/format';
 
 function roleTone(role: Role): BadgeTone {
@@ -115,6 +115,9 @@ export default function Detail() {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [removeMemberOpen, setRemoveMemberOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<UserSummaryDto | null>(null);
 
   const teamState = useAsync<TeamDto>(() => (id ? teamService.get(id) : Promise.reject(new Error('Invalid team id'))), [id]);
   const team = teamState.data;
@@ -149,6 +152,29 @@ export default function Detail() {
     } catch (err) {
       error(extractApiError(err, 'Could not delete the team.'));
       setDeleting(false);
+    }
+  };
+
+  const handleRemoveMember = async (member: UserSummaryDto) => {
+    if (!team || !member.id) return;
+    setMemberToRemove(member);
+    setRemoveMemberOpen(true);
+  };
+
+  const confirmRemoveMember = async () => {
+    if (!memberToRemove || !team) return;
+    setRemovingMemberId(memberToRemove.id);
+    try {
+      await teamService.removeMember(team.id, memberToRemove.id);
+      success(`${memberToRemove.fullName} removed from team.`);
+      setRemoveMemberOpen(false);
+      setMemberToRemove(null);
+      teamState.reload();
+    } catch (err) {
+      error(extractApiError(err, 'Could not remove the member.'));
+      setRemovingMemberId(null);
+    } finally {
+      setRemovingMemberId(null);
     }
   };
 
@@ -188,16 +214,32 @@ export default function Detail() {
           </CardHeader>
           <CardContent>
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {team.members.map((member) => (
-                <li key={member.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <Avatar name={member.fullName} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{member.fullName}</p>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">@{member.username}</p>
-                  </div>
-                  <Badge tone={roleTone(member.role)}>{titleCase(member.role)}</Badge>
-                </li>
-              ))}
+              {team.members.map((member) => {
+                const isProjectOwner = member.id === team.projectId && false; // project owner is on project, not team
+                const isCurrentUser = user && member.id === user.id;
+                const canRemove = isMember && !isCurrentUser && member.role !== 'ADMIN';
+                return (
+                  <li key={member.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                    <Avatar name={member.fullName} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{member.fullName}</p>
+                      <p className="truncate text-xs text-slate-500 dark:text-slate-400">@{member.username}</p>
+                    </div>
+                    <Badge tone={roleTone(member.role)}>{titleCase(member.role)}</Badge>
+                    {canRemove && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRemoveMember(member)}
+                        className="text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                        aria-label={`Remove ${member.fullName} from team`}
+                      >
+                        <UserMinus className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>
@@ -293,6 +335,17 @@ export default function Detail() {
         variant="danger"
         loading={deleting}
         onConfirm={handleDelete}
+      />
+
+      <ConfirmationDialog
+        open={removeMemberOpen}
+        onClose={() => { setRemoveMemberOpen(false); setMemberToRemove(null); }}
+        title="Remove member?"
+        message={`Remove "${memberToRemove?.fullName}" from "${team.name}"? They will lose access to team conversations and files.`}
+        confirmLabel="Remove member"
+        variant="danger"
+        loading={removingMemberId === memberToRemove?.id}
+        onConfirm={confirmRemoveMember}
       />
     </div>
   );
