@@ -30,7 +30,7 @@ spring:
     # as a real connection error instead of "Unable to determine Dialect".
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     show-sql: false
     defer-datasource-initialization: true

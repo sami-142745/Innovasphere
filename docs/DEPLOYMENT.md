@@ -202,10 +202,11 @@ curl https://api.<your-domain>/healthz
 `docker-compose.prod.yml` runs `mysql`, `backend` and `cloudflared`; the backend
 and MySQL ports are not published on the host.
 
-> **Initial data migration:** start only `mysql` first and import the Railway
-> dump before starting `backend` (section 4). The backend uses
-> `ddl-auto: update` and will create tables on first boot, which can collide
-> with the dump's `CREATE TABLE` statements.
+> **Initial data migration:** import the Railway dump before starting `backend`
+> (section 4). Flyway runs on startup: a non-empty legacy schema without history
+> is baselined at version 1, then pending migrations are applied. An empty
+> database runs the full migration chain. Do not start the API against a
+> partially imported dump.
 
 ### 3.7 Deploy the frontend on Cloudflare Pages
 
@@ -285,9 +286,11 @@ modify or delete it.
 6. Test login, project browsing, authenticated endpoints and notifications
    before changing the frontend.
 
-`spring.jpa.hibernate.ddl-auto` is `update`. It can create missing tables, but it
-does not migrate data. After a verified import, consider switching the prod
-profile to `validate` so startup cannot silently alter the schema.
+Schema changes are managed by Flyway (`backend-spring/src/main/resources/db/migration`).
+Hibernate runs with `ddl-auto: validate`, so startup fails if the migrated schema
+and the entity model disagree. Add a new `V<n>__description.sql` file for every
+schema change; never edit an applied migration. Back up MySQL before deploying a
+migration to production.
 
 ---
 

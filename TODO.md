@@ -10,7 +10,7 @@
 ## Phase 4 - production readiness
 - [x] 4.1 Align project/team/user API contracts and admin users/stats endpoints
 - [x] 4.2 Add a real-API browser suite with a disposable MySQL database
-- [ ] 4.3 Introduce Flyway migrations and stop relying on `ddl-auto`
+- [x] 4.3 Introduce Flyway migrations and stop relying on `ddl-auto`
 - [ ] 4.4 Security hardening (token lifecycle, login throttling, public payload review)
 - [ ] 4.5 Missing functionality (profile editing, notification preferences, member removal)
 - [ ] 4.6 Raise test coverage and add quality gates

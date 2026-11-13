@@ -62,7 +62,7 @@ React SPA (Vite) ──JSON/HTTPS──▶ Spring Boot 3 (Java 21) ──▶ JPA
 
 - **Frontend:** React 18 + TypeScript, Vite, Tailwind CSS, Framer Motion, Axios, react-router.
 - **Backend:** Spring Boot 3.5, Spring Security, Spring Data JPA, Bean Validation, springdoc OpenAPI.
-- **Database:** MySQL 8 — 15 entities, `ddl-auto` schema management.
+- **Database:** MySQL 8 — 15 entities, Flyway migrations, Hibernate `validate`.
 - **Deployment:** Docker Compose (local), Oracle Cloud Always Free VM + Cloudflare Tunnel (API), Cloudflare Pages (frontend).
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/ERD.md`](docs/ERD.md) and

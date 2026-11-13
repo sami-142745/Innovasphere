@@ -21,9 +21,15 @@ spring:
       max-lifetime: 1800000
       initialization-fail-timeout: -1
 
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    validate-on-migrate: true
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     show-sql: false
     properties:
