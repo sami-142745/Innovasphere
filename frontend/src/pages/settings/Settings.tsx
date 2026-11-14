@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Bell, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -56,22 +56,20 @@ export default function Settings() {
   const [prefs, setPrefs] = useState<NotificationPreferenceDto | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadPrefs();
-  }, []);
-
-  if (!user) return null;
-
-  const isDark = theme === 'dark';
-
-  const loadPrefs = async () => {
+  const loadPrefs = useCallback(async () => {
     try {
       const data = await notificationService.getPreferences();
       setPrefs(data);
     } catch (err) {
       error(extractApiError(err, 'Could not load preferences.'));
     }
-  };
+  }, [error]);
+
+  useEffect(() => {
+    loadPrefs();
+  }, [loadPrefs]);
+
+  const isDark = theme === 'dark';
 
   const savePrefs = async () => {
     if (!prefs) return;

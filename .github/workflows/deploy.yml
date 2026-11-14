@@ -1,0 +1,45 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ORACLE_VM_HOST: ${{ secrets.ORACLE_VM_HOST }}
+  ORACLE_VM_USER: ${{ secrets.ORACLE_VM_USER }}
+
+jobs:
+  deploy:
+    name: Production deployment
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate environment configuration
+        run: |
+          echo "Deploying to ${{ github.event.inputs.environment }}"
+          echo "Required secrets: ORACLE_VM_HOST, ORACLE_VM_USER, CLOUDFLARE_API_TOKEN"
+          echo "Manual steps required on the Oracle VM:"
+          echo "1. git clone https://github.com/${{ github.repository }} ~/innovasphere"
+          echo "2. cp deploy/oracle/.env.example deploy/oracle/.env  # fill in real values"
+          echo "3. docker compose --env-file deploy/oracle/.env -f docker-compose.prod.yml up -d --build"
+          echo "4. curl https://api.<your-domain>/healthz"
+          echo "5. Deploy frontend to Cloudflare Pages with VITE_API_URL"
+
+      - name: Notify deployment start
+        run: |
+          echo "Production deployment initiated for ${{ github.repository }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"

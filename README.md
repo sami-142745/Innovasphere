@@ -199,15 +199,23 @@ npm test
 cd frontend
 npm run test:browser
 
+# Accessibility (axe-core) — landing, login, settings
+cd frontend
+npx playwright test e2e/accessibility.spec.ts
+
 # Real-API browser suite — disposable MySQL + Spring Boot + React
 # Requires Docker; never touches the development database.
 npm run test:integration
 ```
 
 ```bash
+# Frontend linting
+cd frontend
+npm run lint
+
 # Coverage (optional)
 ./mvnw verify                # JaCoCo report → target/site/jacoco
-npm run test:coverage        # V8 coverage
+npm run test:coverage        # V8 coverage → frontend/coverage/
 ```
 
 ## 🌱 Seed data

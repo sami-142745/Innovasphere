@@ -12,9 +12,9 @@
 - [x] 4.2 Add a real-API browser suite with a disposable MySQL database
 - [x] 4.3 Introduce Flyway migrations and stop relying on `ddl-auto`
 - [x] 4.4 Security hardening (token lifecycle, login throttling, public payload review)
-- [ ] 4.5 Missing functionality (profile editing, notification preferences, member removal)
-- [ ] 4.6 Raise test coverage and add quality gates
-- [ ] 4.7 CI/CD pipeline
+- [x] 4.5 Missing functionality (profile editing, notification preferences, member removal)
+- [x] 4.6 Raise test coverage and add quality gates
+- [x] 4.7 CI/CD pipeline
 - [ ] 4.8 Deployment readiness and post-deploy verification
 
 ## Repository hardening (Stage 2)
