@@ -39,7 +39,7 @@ class RealBackendIntegrationTest {
         .withDatabaseName("innovasphere_e2e")
         .withUsername("e2e")
         .withPassword("e2e-pass")
-        ;
+        .withStartupTimeout(java.time.Duration.ofMinutes(2));
 
 
     @Autowired
@@ -50,11 +50,16 @@ class RealBackendIntegrationTest {
 
     @DynamicPropertySource
     static void datasourceProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
+        registry.add("spring.datasource.url", () -> {
+            if (!mysql.isRunning()) {
+                mysql.start();
+            }
+            return mysql.getJdbcUrl();
+        });
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
         registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("app.jwt.secret", () -> "aW5ub3Zhc3BoZXJlLWUyZS1zZWNyZXQta2V5LTAwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OQ==");
         registry.add("app.jwt.expiration-ms", () -> "3600000");
         registry.add("app.seed.enabled", () -> "false");
@@ -67,14 +72,20 @@ class RealBackendIntegrationTest {
         String body = "{\"firstName\":\"Test\",\"lastName\":\"User\",\"username\":\""
             + email.replace("@", "_") + "\",\"email\":\"" + email
             + "\",\"password\":\"" + password + "\",\"role\":\"" + role + "\"}";
-        ResponseEntity<String> res = rest.postForEntity("/api/auth/register", body, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        ResponseEntity<String> res = rest.exchange("/api/auth/register", HttpMethod.POST, entity, String.class);
         assertEquals(HttpStatus.CREATED, res.getStatusCode());
         return objectMapper.readTree(res.getBody());
     }
 
     private String login(String email, String password) throws Exception {
         String body = "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
-        ResponseEntity<String> res = rest.postForEntity("/api/auth/login", body, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        ResponseEntity<String> res = rest.exchange("/api/auth/login", HttpMethod.POST, entity, String.class);
         assertEquals(HttpStatus.OK, res.getStatusCode());
         return objectMapper.readTree(res.getBody()).get("token").asText();
     }
@@ -111,7 +122,10 @@ class RealBackendIntegrationTest {
         String email = unique("admreg") + "@test.com";
         String body = "{\"firstName\":\"Bad\",\"lastName\":\"Admin\",\"username\":\"badadm\",\"email\":\""
             + email + "\",\"password\":\"StrongPass@123\",\"role\":\"ADMIN\"}";
-        ResponseEntity<String> res = rest.postForEntity("/api/auth/register", body, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        ResponseEntity<String> res = rest.exchange("/api/auth/register", HttpMethod.POST, entity, String.class);
         assertEquals(HttpStatus.FORBIDDEN, res.getStatusCode());
     }
 
@@ -128,7 +142,10 @@ class RealBackendIntegrationTest {
         String email = unique("wlog") + "@test.com";
         register(email, "StrongPass@123", "STUDENT");
         String body = "{\"email\":\"" + email + "\",\"password\":\"WrongPass@999\"}";
-        ResponseEntity<String> res = rest.postForEntity("/api/auth/login", body, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        ResponseEntity<String> res = rest.exchange("/api/auth/login", HttpMethod.POST, entity, String.class);
         assertEquals(HttpStatus.UNAUTHORIZED, res.getStatusCode());
     }
 
