@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import DashboardPage, { FacultyDashboard } from './Dashboard';
 import { renderWithProviders } from '../test/render';
-import { makeAuth, makeUser } from '../test/fixtures';
+import { makeAuth, makePage, makeRecommendedProject, makeUser } from '../test/fixtures';
+import { recommendationService } from '../services/recommendations';
 import { mentorService } from '../services/mentors';
 
 vi.mock('../services/mentors', () => ({
@@ -11,8 +12,36 @@ vi.mock('../services/mentors', () => ({
   }
 }));
 
+vi.mock('../services/recommendations', () => ({
+  recommendationService: {
+    projects: vi.fn(),
+    mentors: vi.fn()
+  }
+}));
+
 describe('StudentDashboard', () => {
   it('renders overview stats and recommendations', async () => {
+    vi.mocked(recommendationService.projects).mockResolvedValue(
+      makePage([makeRecommendedProject()], 1, 0, 9)
+    );
+    vi.mocked(recommendationService.mentors).mockResolvedValue(
+      makePage(
+        [{
+          mentorId: 'm-1',
+          name: 'Prof. Grace Hopper',
+          department: 'Computer Science',
+          expertise: 'Compilers',
+          matchScore: 92,
+          matchedSkills: ['Python'],
+          matchedDomains: ['Artificial Intelligence'],
+          reason: 'Shares your research interests.'
+        }],
+        1,
+        0,
+        6
+      )
+    );
+
     renderWithProviders(<DashboardPage />, { route: '/dashboard', auth: makeAuth() });
 
     expect(await screen.findByRole('heading', { name: 'Recommended projects' })).toBeInTheDocument();
