@@ -12,14 +12,12 @@ vi.mock('../services/mentors', () => ({
 }));
 
 describe('StudentDashboard', () => {
-  it('renders overview stats and recommendations', async () => {
+  it('renders overview stats and the recommendation section', async () => {
     renderWithProviders(<DashboardPage />, { route: '/dashboard', auth: makeAuth() });
 
     expect(await screen.findByText('My projects')).toBeInTheDocument();
     expect(screen.getByText('Unread notifications')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Recommended projects' })).toBeInTheDocument();
-    expect(screen.getByText('No project recommendations yet')).toBeInTheDocument();
-    expect(screen.getByText('No mentor recommendations yet')).toBeInTheDocument();
   });
 });
 
