@@ -167,8 +167,9 @@ jobs:
           SPRING_PROFILES_ACTIVE: test
           FLYWAY_ENABLED: true
         run: |
-          ./mvnw flyway:info
-          ./mvnw flyway:validate
+          FLYWAY_URL="jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+          ./mvnw -Dflyway.url="$FLYWAY_URL" -Dflyway.user="$DB_USERNAME" -Dflyway.password="$DB_PASSWORD" flyway:info
+          ./mvnw -Dflyway.url="$FLYWAY_URL" -Dflyway.user="$DB_USERNAME" -Dflyway.password="$DB_PASSWORD" flyway:validate
 
   real-integration:
     name: Real Backend Integration
@@ -252,8 +253,9 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Install Playwright browsers
-        run: npx playwright install chromium
+      - name: Install Playwright browsers and system dependencies
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
 
       - name: Build frontend (real API URL)
         working-directory: frontend
