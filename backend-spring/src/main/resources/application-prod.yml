@@ -33,14 +33,13 @@ spring:
       ddl-auto: validate
     open-in-view: false
     show-sql: false
-    defer-datasource-initialization: true
 
   jackson:
     serialization:
       write-dates-as-timestamps: false
 
   main:
-    lazy-initialization: true
+    lazy-initialization: false
 
 server:
   port: ${PORT:10000}
