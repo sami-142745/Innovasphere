@@ -82,13 +82,13 @@ export function Topbar({ onToggleSidebar, collapsed }: { onToggleSidebar?: () =>
             onClick={() => setMenuOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            aria-label={`${user.fullName} ${titleCase(user.role)}`}
+            aria-labelledby="account-menu-user-name account-menu-user-role"
             className="flex items-center gap-2 rounded-xl border border-transparent p-1 pr-2 transition hover:border-slate-200 dark:hover:border-white/10"
           >
             <Avatar name={user.fullName} />
             <span className="hidden text-left sm:block">
-              <span className="block max-w-40 truncate text-sm font-medium text-slate-900 dark:text-slate-100">{user.fullName}</span>
-              <span className="block text-xs text-slate-500 dark:text-slate-400">{titleCase(user.role)}</span>
+              <span id="account-menu-user-name" className="block max-w-40 truncate text-sm font-medium text-slate-900 dark:text-slate-100">{user.fullName}</span>
+              <span id="account-menu-user-role" className="block text-xs text-slate-500 dark:text-slate-400">{titleCase(user.role)}</span>
             </span>
             <ChevronDown className={cn('hidden h-4 w-4 text-slate-400 transition-transform sm:block', menuOpen && 'rotate-180')} aria-hidden="true" />
           </button>
