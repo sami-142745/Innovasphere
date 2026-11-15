@@ -82,10 +82,10 @@ export function Topbar({ onToggleSidebar, collapsed }: { onToggleSidebar?: () =>
             onClick={() => setMenuOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            aria-label={`${initials(user.fullName)} ${user.fullName} ${titleCase(user.role)}`}
+            aria-label={`${user.fullName} ${titleCase(user.role)} account menu`}
             className="flex items-center gap-2 rounded-xl border border-transparent p-1 pr-2 transition hover:border-slate-200 dark:hover:border-white/10"
           >
-            <Avatar name={user.fullName} />
+            <span aria-hidden="true"><Avatar name={user.fullName} /></span>
             <span className="hidden text-left sm:block">
               <span className="block max-w-40 truncate text-sm font-medium text-slate-900 dark:text-slate-100">{user.fullName}</span>
               <span className="block text-xs text-slate-500 dark:text-slate-400">{titleCase(user.role)}</span>
