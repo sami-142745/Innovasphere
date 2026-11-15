@@ -16,8 +16,8 @@ describe('StudentDashboard', () => {
     renderWithProviders(<DashboardPage />, { route: '/dashboard', auth: makeAuth() });
 
     expect(await screen.findByRole('heading', { name: 'Recommended projects' })).toBeInTheDocument();
-    expect(screen.getByText('Neural Interface Design')).toBeInTheDocument();
-    expect(screen.getByText('Prof. Grace Hopper')).toBeInTheDocument();
+    expect(await screen.findByText('Neural Interface Design')).toBeInTheDocument();
+    expect(await screen.findByText('Prof. Grace Hopper')).toBeInTheDocument();
     expect(screen.getByText('My projects')).toBeInTheDocument();
     expect(screen.getByText('Unread notifications')).toBeInTheDocument();
   });

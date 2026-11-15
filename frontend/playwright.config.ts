@@ -25,7 +25,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? 'list' : 'html',
   webServer: {
-    command: 'npm run dev',
+    command: 'VITE_API_URL=http://localhost:8099 npm run dev',
     port: 5173,
     baseURL: 'http://localhost:5173',
     reuseExistingServer: false,
