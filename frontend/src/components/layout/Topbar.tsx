@@ -82,6 +82,7 @@ export function Topbar({ onToggleSidebar, collapsed }: { onToggleSidebar?: () =>
             onClick={() => setMenuOpen((v) => !v)}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Close account menu' : 'Open account menu'}
             className="flex items-center gap-2 rounded-xl border border-transparent p-1 pr-2 transition hover:border-slate-200 dark:hover:border-white/10"
           >
             <Avatar name={user.fullName} />
