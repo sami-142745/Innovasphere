@@ -3,7 +3,7 @@ import { Bell, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '../../components/ui';
+import { Button, Card, CardContent, CardHeader } from '../../components/ui';
 import { HeroBanner } from '../../components/shared/HeroBanner';
 import { cn } from '../../utils/cn';
 import { notificationService } from '../../services/notifications';
@@ -100,7 +100,7 @@ export default function Settings() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Appearance</CardTitle>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">Appearance</h2>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between gap-4">
@@ -124,10 +124,10 @@ export default function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900 dark:text-slate-50">
               <Bell className="h-4 w-4 text-slate-400" aria-hidden="true" />
               Notifications
-            </CardTitle>
+            </h2>
           </CardHeader>
           <CardContent>
             <div className="mx-auto max-w-7xl space-y-6">
@@ -159,7 +159,7 @@ export default function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account</CardTitle>
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">Account</h2>
         </CardHeader>
         <CardContent>
           <dl className="divide-y divide-slate-100 dark:divide-slate-800">
