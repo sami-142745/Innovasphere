@@ -84,6 +84,7 @@ export function Topbar({ onToggleSidebar, collapsed }: { onToggleSidebar?: () =>
             aria-expanded={menuOpen}
             className="flex items-center gap-2 rounded-xl border border-transparent p-1 pr-2 transition hover:border-slate-200 dark:hover:border-white/10"
           >
+            <span className="sr-only">Open account menu for {user.fullName}, {titleCase(user.role)}</span>
             <span aria-hidden="true"><Avatar name={user.fullName} /></span>
             <span className="hidden text-left sm:block">
               <span className="block max-w-40 truncate text-sm font-medium text-slate-900 dark:text-slate-100">{user.fullName}</span>
