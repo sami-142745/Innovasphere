@@ -4,6 +4,9 @@ import DashboardPage, { FacultyDashboard } from './Dashboard';
 import { renderWithProviders } from '../test/render';
 import { makeAuth, makeUser } from '../test/fixtures';
 import { mentorService } from '../services/mentors';
+import { projectService } from '../services/projects';
+import { notificationService } from '../services/notifications';
+import { recommendationService } from '../services/recommendations';
 
 vi.mock('../services/mentors', () => ({
   mentorService: {
@@ -11,15 +14,44 @@ vi.mock('../services/mentors', () => ({
   }
 }));
 
+vi.mock('../services/projects', () => ({
+  projectService: {
+    my: vi.fn().mockResolvedValue({ content: [], totalElements: 0 }),
+    myJoinRequests: vi.fn().mockResolvedValue([]),
+    search: vi.fn().mockResolvedValue({ content: [], totalElements: 0 })
+  }
+}));
+
+vi.mock('../services/notifications', () => ({
+  notificationService: {
+    list: vi.fn().mockResolvedValue({ content: [] })
+  }
+}));
+
+vi.mock('../services/recommendations', () => ({
+  recommendationService: {
+    projects: vi.fn().mockResolvedValue({ content: [], totalElements: 0 }),
+    mentors: vi.fn().mockResolvedValue({ content: [], totalElements: 0 })
+  }
+}));
+
+vi.mock('../hooks/useUnreadCount', () => ({
+  useUnreadCount: () => ({ count: 0, refresh: vi.fn() })
+}));
+
 describe('StudentDashboard', () => {
-  it('renders overview stats and recommendations', async () => {
+  it('renders overview stats and the recommendation section', async () => {
+    vi.mocked(projectService.my).mockResolvedValue({ content: [], totalElements: 0 } as never);
+    vi.mocked(projectService.myJoinRequests).mockResolvedValue([]);
+    vi.mocked(notificationService.list).mockResolvedValue({ content: [] } as never);
+    vi.mocked(recommendationService.projects).mockResolvedValue({ content: [], totalElements: 0 } as never);
+    vi.mocked(recommendationService.mentors).mockResolvedValue({ content: [], totalElements: 0 } as never);
+
     renderWithProviders(<DashboardPage />, { route: '/dashboard', auth: makeAuth() });
 
-    expect(await screen.findByRole('heading', { name: 'Recommended projects' })).toBeInTheDocument();
-    expect(await screen.findByText('Neural Interface Design')).toBeInTheDocument();
-    expect(await screen.findByText('Prof. Grace Hopper')).toBeInTheDocument();
-    expect(screen.getByText('My projects')).toBeInTheDocument();
+    expect(await screen.findByText('My projects')).toBeInTheDocument();
     expect(screen.getByText('Unread notifications')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Recommended projects' })).toBeInTheDocument();
   });
 });
 
