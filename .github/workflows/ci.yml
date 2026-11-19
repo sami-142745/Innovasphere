@@ -165,7 +165,7 @@ jobs:
           DB_PASSWORD: e2e-pass
           JWT_SECRET: ${{ secrets.JWT_SECRET || 'aW5ub3Zhc3BoZXJlLWUyZS1zZWNyZXQta2V5LTAwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OQ==' }}
           SPRING_PROFILES_ACTIVE: test
-          FLYWAY_ENABLED: true
+          SPRING_FLYWAY_ENABLED: true
         run: |
           ./mvnw flyway:info
           ./mvnw flyway:validate

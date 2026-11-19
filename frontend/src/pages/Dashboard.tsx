@@ -33,6 +33,18 @@ import { recommendationService } from '../services/recommendations';
 import type { MentorshipRequestDto, MentorRecommendationDto, NotificationDto, ProjectRecommendationDto, ProjectStatus, ProjectSummaryDto, RequestStatus } from '../types';
 import { projectStatusLabel, timeAgo } from '../utils/format';
 
+const REQUEST_TIMEOUT_MS = 10000;
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Request timed out. Please try again.')), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  });
+};
+
 function buildStatusDistribution(projects: ProjectSummaryDto[]): Array<{ label: string; value: number }> {
   const counts = new Map<ProjectStatus, number>();
   for (const project of projects) {
@@ -106,15 +118,17 @@ function StudentDashboard() {
   const firstName = user?.fullName?.split(' ')[0] ?? 'there';
   const reducedMotion = useReducedMotion();
 
+  const REQUEST_TIMEOUT_MS = 10000;
+
   const loadDashboard = useCallback(async () => {
     setLoading(true);
 
     const fetches = [
-      projectService.my({ page: 0, size: 100 }).catch(() => ({ content: [], totalElements: 0 })),
-      projectService.myJoinRequests().catch(() => []),
-      notificationService.list(0, 100).catch(() => ({ content: [] })),
-      recommendationService.projects(0, 9).catch(() => ({ content: [], totalElements: 0 })),
-      recommendationService.mentors(0, 6).catch(() => ({ content: [], totalElements: 0 })),
+      withTimeout(projectService.my({ page: 0, size: 100 }), REQUEST_TIMEOUT_MS).catch(() => ({ content: [], totalElements: 0 })),
+      withTimeout(projectService.myJoinRequests(), REQUEST_TIMEOUT_MS).catch(() => []),
+      withTimeout(notificationService.list(0, 100), REQUEST_TIMEOUT_MS).catch(() => ({ content: [] })),
+      withTimeout(recommendationService.projects(0, 9), REQUEST_TIMEOUT_MS).catch(() => ({ content: [], totalElements: 0 })),
+      withTimeout(recommendationService.mentors(0, 6), REQUEST_TIMEOUT_MS).catch(() => ({ content: [], totalElements: 0 })),
     ];
 
     const results = await Promise.allSettled(fetches);

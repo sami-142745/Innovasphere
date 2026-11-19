@@ -10,6 +10,18 @@ import { notificationService } from '../../services/notifications';
 import type { NotificationPreferenceDto } from '../../types';
 import { extractApiError } from '../../api/client';
 
+const REQUEST_TIMEOUT_MS = 10000;
+
+const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Request timed out. Please try again.')), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) clearTimeout(timeoutId);
+  });
+};
+
 function ToggleRow({
   label,
   description,
@@ -56,9 +68,11 @@ export default function Settings() {
   const [prefs, setPrefs] = useState<NotificationPreferenceDto | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const REQUEST_TIMEOUT_MS = 10000;
+
   const loadPrefs = useCallback(async () => {
     try {
-      const data = await notificationService.getPreferences();
+      const data = await withTimeout(notificationService.getPreferences(), REQUEST_TIMEOUT_MS);
       setPrefs(data);
     } catch (err) {
       error(extractApiError(err, 'Could not load preferences.'));
@@ -75,10 +89,10 @@ export default function Settings() {
     if (!prefs) return;
     setLoading(true);
     try {
-      await notificationService.updatePreferences({
+      await withTimeout(notificationService.updatePreferences({
         emailAlerts: prefs.emailAlerts,
         inAppAlerts: prefs.inAppAlerts
-      });
+      }), REQUEST_TIMEOUT_MS);
       success('Preferences saved.');
     } catch (err) {
       error(extractApiError(err, 'Could not save preferences.'));
