@@ -1,9 +1,13 @@
 import { api } from '../api/client';
+import { createApiCache } from '../utils/apiCache';
+import { getCacheKey } from '../utils/projectCache';
+import { getCurrentUserId } from '../utils/currentUser';
 import type { JoinRequestDto, Page, ProjectCreateRequest, ProjectDto, ProjectStatus, ProjectSummaryDto, ProjectUpdateRequest, RequestStatus } from '../types';
 import { DEFAULT_PAGE_SIZE } from '../utils/constants';
-import { getCacheKey } from '../utils/projectCache';
 import { deduplicateRequest } from '../utils/requestManager';
 import { timedApiCall } from '../utils/performance';
+
+const projectCache = createApiCache<Page<ProjectSummaryDto>>({ ttlMs: 30_000 });
 
 export interface ProjectQuery {
   page?: number;
@@ -51,7 +55,7 @@ export function projectRequestKey(query: ProjectSearchQuery, isSearch: boolean):
  * Projects overrides it (with PROJECT_DIRECTORY_PAGE_SIZE) so My Projects and
  * the other project screens keep their existing 9-per-page layout.
  */
-function makeListRequest(query: ProjectQuery, signal: AbortSignal): Promise<Page<ProjectSummaryDto>> {
+function makeListRequest(query: ProjectQuery, signal: AbortSignal | undefined): Promise<Page<ProjectSummaryDto>> {
   return api.get('/api/projects', {
     params: cleanParams({
       page: query.page ?? 0,
@@ -63,7 +67,7 @@ function makeListRequest(query: ProjectQuery, signal: AbortSignal): Promise<Page
   }).then((r) => r.data);
 }
 
-function makeSearchRequest(query: ProjectSearchQuery, signal: AbortSignal): Promise<Page<ProjectSummaryDto>> {
+function makeSearchRequest(query: ProjectSearchQuery, signal: AbortSignal | undefined): Promise<Page<ProjectSummaryDto>> {
   return api.get('/api/projects/search', {
     params: cleanParams({
       page: query.page ?? 0,
@@ -78,7 +82,7 @@ function makeSearchRequest(query: ProjectSearchQuery, signal: AbortSignal): Prom
   }).then((r) => r.data);
 }
 
-function makeMyRequest(query: ProjectQuery, signal: AbortSignal): Promise<Page<ProjectSummaryDto>> {
+function makeMyRequest(query: ProjectQuery, signal: AbortSignal | undefined): Promise<Page<ProjectSummaryDto>> {
   return api.get('/api/projects/my', {
     params: cleanParams({
       page: query.page ?? 0,
@@ -89,53 +93,52 @@ function makeMyRequest(query: ProjectQuery, signal: AbortSignal): Promise<Page<P
   }).then((r) => r.data);
 }
 
-/**
- * The dedup manager owns the AbortController so that releaseRequest and
- * cancelPendingRequest can always stop the underlying call. When a caller also
- * supplies its own signal we forward that abort into the manager's controller
- * instead of bypassing it - otherwise the manager would abort a controller
- * nobody listens to and the request would keep running.
- */
-function resolveSignal(external: AbortSignal | undefined, managed: AbortController): AbortSignal {
-  if (!external) return managed.signal;
-  if (external.aborted) {
-    managed.abort();
-  } else {
-    external.addEventListener('abort', () => managed.abort(), { once: true });
-  }
-  return managed.signal;
-}
+
 
 export const projectService = {
+  my(query: ProjectQuery = {}, signal?: AbortSignal): Promise<Page<ProjectSummaryDto>> {
+    const userId = getCurrentUserId();
+    const cacheKey = `my:${userId}:${getCacheKey(query)}`;
+
+    const cached = projectCache.get(cacheKey);
+    if (cached) return Promise.resolve(cached);
+
+    return deduplicateRequest(cacheKey, (_c) => timedApiCall(() => makeMyRequest(query, signal))).then((data) => {
+      projectCache.set(cacheKey, data);
+      return data;
+    });
+  },
+
   list(query: ProjectQuery = {}, signal?: AbortSignal): Promise<Page<ProjectSummaryDto>> {
-    const key = makeListCacheKey(query);
-    return deduplicateRequest(key, (c) => timedApiCall(() => makeListRequest(query, resolveSignal(signal, c))));
+    return makeListRequest(query, signal);
   },
 
   search(query: ProjectSearchQuery = {}, signal?: AbortSignal): Promise<Page<ProjectSummaryDto>> {
-    const key = makeSearchCacheKey(query);
-    return deduplicateRequest(key, (c) => timedApiCall(() => makeSearchRequest(query, resolveSignal(signal, c))));
+    return makeSearchRequest(query, signal);
   },
 
   get(id: string): Promise<ProjectDto> {
     return timedApiCall(() => api.get(`/api/projects/${id}`).then((r) => r.data));
   },
 
-  my(query: ProjectQuery = {}, signal?: AbortSignal): Promise<Page<ProjectSummaryDto>> {
-    const key = `my:${getCacheKey(query)}`;
-    return deduplicateRequest(key, (c) => timedApiCall(() => makeMyRequest(query, resolveSignal(signal, c))));
-  },
-
   create(payload: ProjectCreateRequest): Promise<ProjectDto> {
-    return timedApiCall(() => api.post('/api/projects', payload).then((r) => r.data));
+    return timedApiCall(() => api.post('/api/projects', payload).then((r) => {
+      projectCache.invalidatePattern(`my:${getCurrentUserId()}:`);
+      return r.data;
+    }));
   },
 
   update(id: string, payload: ProjectUpdateRequest): Promise<ProjectDto> {
-    return timedApiCall(() => api.put(`/api/projects/${id}`, payload).then((r) => r.data));
+    return timedApiCall(() => api.put(`/api/projects/${id}`, payload).then((r) => {
+      projectCache.invalidatePattern(`my:${getCurrentUserId()}:`);
+      return r.data;
+    }));
   },
 
   remove(id: string): Promise<void> {
-    return timedApiCall(() => api.delete(`/api/projects/${id}`).then(() => undefined));
+    return timedApiCall(() => api.delete(`/api/projects/${id}`).then(() => {
+      projectCache.invalidatePattern(`my:${getCurrentUserId()}:`);
+    }));
   },
 
   createJoinRequest(projectId: string, message?: string): Promise<JoinRequestDto> {
@@ -155,7 +158,7 @@ export const projectService = {
 
   myJoinRequests(): Promise<JoinRequestDto[]> {
     return deduplicateRequest('my-join-requests', (c) =>
-      timedApiCall(() => api.get('/api/join-requests/my', { signal: c.signal }).then((r) => {
+      timedApiCall(() => api.get(`/api/join-requests/my`, { signal: c.signal }).then((r) => {
         const data = r.data;
         if (Array.isArray(data)) return data;
         if (data && Array.isArray(data.content)) return data.content;

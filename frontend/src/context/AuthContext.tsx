@@ -3,6 +3,7 @@ import { setUnauthorizedHandler } from '../api/client';
 import { authService, type RegisterPayload } from '../services/auth';
 import type { Role, UserProfileDto } from '../types';
 import { AUTH_STORAGE_KEY, TOKEN_KEY } from '../utils/constants';
+import { setCurrentUserId } from '../utils/currentUser';
 
 export interface StoredAuth {
   token: string;
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAuth();
     setAuth(null);
     setUser(null);
+    setCurrentUserId(null);
   }, []);
 
   const logout = useCallback(() => {
@@ -76,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const fresh = await authService.me();
         if (!cancelled) {
           setUser(fresh);
+          setCurrentUserId(fresh.id);
           persistAuth({ ...stored, user: fresh });
         }
       } catch {
@@ -96,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistAuth(next);
     setAuth(next);
     setUser(response.user);
+    setCurrentUserId(response.user.id);
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
@@ -104,6 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistAuth(next);
     setAuth(next);
     setUser(response.user);
+    setCurrentUserId(response.user.id);
   }, []);
 
   const hasRole = useCallback(
